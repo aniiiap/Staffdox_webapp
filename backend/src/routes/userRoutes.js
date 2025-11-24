@@ -136,87 +136,206 @@ router.get('/by-phone/:phone', async (req, res) => {
 router.put('/me', auth, async (req, res) => {
   try {
     const { password, resume, workExperience, education, jobPreferences, ...updates } = req.body;
-    const user = await User.findById(req.user._id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
-
-    // If resume is being set to null, delete from Cloudinary
-    if (resume === null && user.resumeCloudinaryPublicId) {
-      try {
-        await cloudinary.uploader.destroy(user.resumeCloudinaryPublicId);
-        console.log('Resume deleted from Cloudinary:', user.resumeCloudinaryPublicId);
-      } catch (deleteError) {
-        console.error('Error deleting resume from Cloudinary:', deleteError);
-        // Continue anyway
+    
+    // Fields that should not be updated directly
+    const systemFields = ['_id', 'id', 'createdAt', 'updatedAt', 'email', 'role', 'googleId', 'linkedinId', 'passwordHash', 'appliedJobs', 'isActive', 'emailVerified', 'lastLogin', 'plan', 'passwordResetToken', 'passwordResetExpires', 'passwordResetUsed', 'profileCompleteness'];
+    
+    // Build update object
+    const updateObj = {};
+    
+    // Handle resume deletion
+    if (resume === null) {
+      const user = await User.findById(req.user._id);
+      if (user && user.resumeCloudinaryPublicId) {
+        try {
+          await cloudinary.uploader.destroy(user.resumeCloudinaryPublicId);
+          console.log('Resume deleted from Cloudinary:', user.resumeCloudinaryPublicId);
+        } catch (deleteError) {
+          console.error('Error deleting resume from Cloudinary:', deleteError);
+        }
       }
-      user.resume = null;
-      user.resumeCloudinaryPublicId = null;
-    } else {
-      // Update normal fields (excluding resume if it's null)
-      Object.assign(user, updates);
-      if (resume !== undefined && resume !== null) {
-        user.resume = resume;
+      updateObj.resume = null;
+      updateObj.resumeCloudinaryPublicId = null;
+    } else if (resume !== undefined && resume !== null) {
+      updateObj.resume = resume;
+    }
+
+    // Update normal fields (excluding system fields and special fields)
+    Object.keys(updates).forEach(key => {
+      if (updates[key] !== undefined && !systemFields.includes(key) && key !== 'workExperience' && key !== 'education' && key !== 'jobPreferences') {
+        // Convert empty strings to null for optional fields
+        updateObj[key] = updates[key] === '' ? null : updates[key];
+      }
+    });
+
+    // Handle workExperience - convert date strings to Date objects with validation
+    if (workExperience !== undefined) {
+      if (Array.isArray(workExperience)) {
+        updateObj.workExperience = workExperience.map(exp => {
+          const experience = {
+            company: exp.company || '',
+            position: exp.position || '',
+            current: Boolean(exp.current),
+            description: exp.description || ''
+          };
+          
+          // Validate and parse startDate (handle empty strings)
+          if (exp.startDate && String(exp.startDate).trim() !== '') {
+            const startDate = new Date(exp.startDate);
+            if (!isNaN(startDate.getTime())) {
+              experience.startDate = startDate;
+            }
+          }
+          
+          // Validate and parse endDate (only if not current and not empty)
+          if (exp.endDate && String(exp.endDate).trim() !== '' && !exp.current) {
+            const endDate = new Date(exp.endDate);
+            if (!isNaN(endDate.getTime())) {
+              experience.endDate = endDate;
+            }
+          }
+          
+          return experience;
+        });
+      } else if (workExperience === null) {
+        updateObj.workExperience = [];
       }
     }
 
-    // Handle workExperience - convert date strings to Date objects
-    if (workExperience && Array.isArray(workExperience)) {
-      user.workExperience = workExperience.map(exp => ({
-        company: exp.company || '',
-        position: exp.position || '',
-        startDate: exp.startDate ? new Date(exp.startDate) : undefined,
-        endDate: exp.endDate && !exp.current ? new Date(exp.endDate) : undefined,
-        current: exp.current || false,
-        description: exp.description || ''
-      }));
+    // Handle education array with validation
+    if (education !== undefined) {
+      if (Array.isArray(education)) {
+        updateObj.education = education.map(edu => {
+          const educationItem = {
+            degree: edu.degree || '',
+            institution: edu.institution || '',
+            field: edu.field || ''
+          };
+          
+          // Validate and parse year (handle empty strings and string numbers)
+          if (edu.year && String(edu.year).trim() !== '') {
+            const year = parseInt(String(edu.year).trim(), 10);
+            if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear() + 10) {
+              educationItem.year = year;
+            }
+          }
+          
+          return educationItem;
+        });
+      } else if (education === null) {
+        updateObj.education = [];
+      }
     }
 
-    // Handle education array
-    if (education && Array.isArray(education)) {
-      user.education = education.map(edu => ({
-        degree: edu.degree || '',
-        institution: edu.institution || '',
-        year: edu.year ? parseInt(edu.year) : undefined,
-        field: edu.field || ''
-      }));
-    }
-
-    // Handle jobPreferences - properly format nested object
-    if (jobPreferences && typeof jobPreferences === 'object') {
-      user.jobPreferences = {
-        preferredLocations: Array.isArray(jobPreferences.preferredLocations) 
-          ? jobPreferences.preferredLocations.filter(loc => loc && loc.trim() !== '')
-          : [],
-        preferredJobTypes: Array.isArray(jobPreferences.preferredJobTypes) 
-          ? jobPreferences.preferredJobTypes.filter(type => type && type.trim() !== '')
-          : [],
-        expectedSalary: {
-          min: jobPreferences.expectedSalary?.min && jobPreferences.expectedSalary.min !== '' 
-            ? parseFloat(jobPreferences.expectedSalary.min) 
-            : undefined,
-          max: jobPreferences.expectedSalary?.max && jobPreferences.expectedSalary.max !== '' 
-            ? parseFloat(jobPreferences.expectedSalary.max) 
-            : undefined,
-          currency: jobPreferences.expectedSalary?.currency || 'INR'
-        },
-        preferredIndustries: Array.isArray(jobPreferences.preferredIndustries) 
-          ? jobPreferences.preferredIndustries.filter(industry => industry && industry.trim() !== '')
-          : [],
-        availability: jobPreferences.availability && jobPreferences.availability.trim() !== '' 
-          ? jobPreferences.availability 
-          : undefined
-      };
+    // Handle jobPreferences - properly format nested object with validation
+    if (jobPreferences !== undefined) {
+      if (jobPreferences === null) {
+        updateObj.jobPreferences = {
+          preferredLocations: [],
+          preferredJobTypes: [],
+          expectedSalary: { currency: 'INR' },
+          preferredIndustries: [],
+          availability: undefined
+        };
+      } else if (typeof jobPreferences === 'object') {
+        // Valid enum values for job types
+        const validJobTypes = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'];
+        // Valid enum values for availability
+        const validAvailability = ['Immediate', '2 weeks', '1 month', '2 months', '3+ months'];
+        
+        const prefs = {
+          preferredLocations: Array.isArray(jobPreferences.preferredLocations) 
+            ? jobPreferences.preferredLocations.filter(loc => loc && typeof loc === 'string' && loc.trim() !== '')
+            : [],
+          preferredJobTypes: Array.isArray(jobPreferences.preferredJobTypes) 
+            ? jobPreferences.preferredJobTypes.filter(type => 
+                type && typeof type === 'string' && validJobTypes.includes(type)
+              )
+            : [],
+          expectedSalary: {
+            currency: jobPreferences.expectedSalary?.currency || 'INR'
+          },
+          preferredIndustries: Array.isArray(jobPreferences.preferredIndustries) 
+            ? jobPreferences.preferredIndustries.filter(industry => 
+                industry && typeof industry === 'string' && industry.trim() !== ''
+              )
+            : [],
+          availability: undefined
+        };
+        
+        // Validate and parse salary min/max (handle empty strings and null)
+        if (jobPreferences.expectedSalary?.min !== undefined && jobPreferences.expectedSalary.min !== '' && jobPreferences.expectedSalary.min !== null) {
+          const minValue = String(jobPreferences.expectedSalary.min).trim();
+          if (minValue !== '') {
+            const min = parseFloat(minValue);
+            if (!isNaN(min) && min >= 0) {
+              prefs.expectedSalary.min = min;
+            }
+          }
+        }
+        
+        if (jobPreferences.expectedSalary?.max !== undefined && jobPreferences.expectedSalary.max !== '' && jobPreferences.expectedSalary.max !== null) {
+          const maxValue = String(jobPreferences.expectedSalary.max).trim();
+          if (maxValue !== '') {
+            const max = parseFloat(maxValue);
+            if (!isNaN(max) && max >= 0) {
+              prefs.expectedSalary.max = max;
+            }
+          }
+        }
+        
+        // Validate availability enum (handle empty strings)
+        if (jobPreferences.availability && typeof jobPreferences.availability === 'string') {
+          const trimmedAvailability = jobPreferences.availability.trim();
+          if (trimmedAvailability !== '' && validAvailability.includes(trimmedAvailability)) {
+            prefs.availability = trimmedAvailability;
+          } else if (trimmedAvailability === '') {
+            prefs.availability = undefined;
+          }
+        }
+        
+        updateObj.jobPreferences = prefs;
+      }
     }
 
     // If password is provided, hash and update it
-    if (password && password.trim()) {
+    if (password && typeof password === 'string' && password.trim()) {
       const bcrypt = require('bcryptjs');
       const salt = await bcrypt.genSalt(10);
-      user.passwordHash = await bcrypt.hash(password, salt);
+      updateObj.passwordHash = await bcrypt.hash(password, salt);
     }
 
-    // Calculate profile completeness after update
-    user.calculateProfileCompleteness();
-    await user.save();
+    // Use findByIdAndUpdate to avoid version conflicts - this is atomic
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: updateObj },
+      { 
+        new: true, 
+        runValidators: true,
+        context: 'query'
+      }
+    ).select('-passwordHash');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate profile completeness after update (only for regular users)
+    // Use findByIdAndUpdate again to avoid version conflicts
+    if (user.role === 'user') {
+      user.calculateProfileCompleteness();
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: { profileCompleteness: user.profileCompleteness } },
+        { new: true }
+      ).select('-passwordHash');
+      
+      if (updatedUser) {
+        const safeUser = updatedUser.toObject();
+        delete safeUser.passwordHash;
+        return res.json({ user: safeUser });
+      }
+    }
 
     const safeUser = user.toObject();
     delete safeUser.passwordHash;
@@ -225,7 +344,19 @@ router.put('/me', auth, async (req, res) => {
   } catch (err) {
     console.error('Error updating profile:', err);
     console.error('Error stack:', err.stack);
-    res.status(500).json({ message: err.message || 'Server error' });
+    console.error('Request body:', JSON.stringify(req.body, null, 2));
+    
+    // Provide more specific error messages
+    let errorMessage = 'Server error';
+    if (err.name === 'ValidationError') {
+      errorMessage = `Validation error: ${Object.values(err.errors).map(e => e.message).join(', ')}`;
+    } else if (err.name === 'CastError') {
+      errorMessage = `Invalid data format: ${err.message}`;
+    } else if (err.message) {
+      errorMessage = err.message;
+    }
+    
+    res.status(500).json({ message: errorMessage });
   }
 });
 
