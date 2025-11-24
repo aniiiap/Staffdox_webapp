@@ -926,6 +926,21 @@ router.put('/recruiter/applications/:id/reject', auth, async (req, res) => {
   }
 });
 
+// Admin: delete sales enquiry
+router.delete('/recruiter/applications/:id', auth, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return res.status(403).json({ message: 'Access denied' });
+    const enquiry = await SalesEnquiry.findById(req.params.id);
+    if (!enquiry) return res.status(404).json({ message: 'Sales enquiry not found' });
+    
+    await SalesEnquiry.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Sales enquiry deleted successfully' });
+  } catch (error) {
+    console.error('Delete sales enquiry error:', error);
+    res.status(500).json({ message: 'Failed to delete sales enquiry' });
+  }
+});
+
 // (moved /recruiters above)
 
 module.exports = router;

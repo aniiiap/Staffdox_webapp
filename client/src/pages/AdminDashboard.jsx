@@ -431,8 +431,14 @@ export default function AdminDashboard() {
     }
     
     try {
-      // Fetch PDF through authenticated API to include auth token
-      const response = await API.get('/api/user/view-resume', {
+      const userId = user._id || user.id;
+      if (!userId) {
+        toast.error('User ID not found');
+        return;
+      }
+
+      // Fetch PDF through authenticated API for admin to view user's resume
+      const response = await API.get(`/api/user/recruiter/view-resume/${userId}`, {
         responseType: 'blob'
       });
       
@@ -494,6 +500,36 @@ export default function AdminDashboard() {
     }
   };
 
+  const deleteApplication = async (applicationId, jobId) => {
+    if (window.confirm('Are you sure you want to delete this application? This action cannot be undone.')) {
+      try {
+        await API.delete(`/api/jobs/applications/${jobId}/${applicationId}`);
+        toast.success('Application deleted successfully');
+        fetchJobs(); // Refresh to get updated data
+        fetchStats(); // Refresh stats
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete application');
+        console.error(error);
+      }
+    }
+  };
+
+  const deleteSalesEnquiry = async (enquiryId) => {
+    if (window.confirm('Are you sure you want to delete this sales enquiry? This action cannot be undone.')) {
+      try {
+        await API.delete(`/api/user/recruiter/applications/${enquiryId}`);
+        toast.success('Sales enquiry deleted successfully');
+        // Refresh the list
+        API.get('/api/user/recruiter/applications')
+          .then(r => setRecruiterApps(r.data.applications))
+          .catch(() => toast.error('Failed to refresh applications'));
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to delete sales enquiry');
+        console.error(error);
+      }
+    }
+  };
+
   const updateJobStatus = async (jobId, newStatus) => {
     try {
       await API.put(`/api/jobs/${jobId}`, { status: newStatus });
@@ -546,6 +582,7 @@ export default function AdminDashboard() {
   // Recruiter Applications & Recruiters
   const [recruiterApps, setRecruiterApps] = useState([]);
   const [recruiters, setRecruiters] = useState([]);
+  const [salesEnquirySort, setSalesEnquirySort] = useState('newest'); // 'newest' or 'oldest'
 
   useEffect(() => {
     if (activeTab === 'recruiter_apps') {
@@ -1211,8 +1248,19 @@ export default function AdminDashboard() {
         {/* Sales Enquiries */}
         {activeTab === 'recruiter_apps' && (
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-medium text-gray-900">Sales Enquiries</h3>
+              <div className="flex items-center gap-4">
+                <label className="text-sm text-gray-700">Sort by:</label>
+                <select
+                  value={salesEnquirySort}
+                  onChange={(e) => setSalesEnquirySort(e.target.value)}
+                  className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                </select>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
@@ -1225,23 +1273,48 @@ export default function AdminDashboard() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mobile</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company Size</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">City</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {recruiterApps.length === 0 && (
-                    <tr><td colSpan={7} className="px-6 py-10 text-center text-gray-500">No enquiries</td></tr>
-                  )}
-                  {recruiterApps.map(app => (
-                    <tr key={app._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.contactName || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.designation || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.companyName || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.companyEmail || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.contactPhone || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.companySize || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.city || '-'}</td>
-                    </tr>
-                  ))}
+                  {(() => {
+                    const sortedApps = [...recruiterApps].sort((a, b) => {
+                      const dateA = new Date(a.createdAt || a._id.getTimestamp?.() || 0);
+                      const dateB = new Date(b.createdAt || b._id.getTimestamp?.() || 0);
+                      return salesEnquirySort === 'newest' 
+                        ? dateB - dateA 
+                        : dateA - dateB;
+                    });
+                    
+                    if (sortedApps.length === 0) {
+                      return (
+                        <tr>
+                          <td colSpan={8} className="px-6 py-10 text-center text-gray-500">No enquiries</td>
+                        </tr>
+                      );
+                    }
+                    
+                    return sortedApps.map(app => (
+                      <tr key={app._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.contactName || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.designation || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.companyName || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.companyEmail || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.contactPhone || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.companySize || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.city || '-'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => deleteSalesEnquiry(app._id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete Sales Enquiry"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
             </div>
@@ -1563,11 +1636,18 @@ export default function AdminDashboard() {
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                               <div className="flex space-x-2">
                                 <button
-                                onClick={() => viewApplicationDetails(application, job)}
+                                  onClick={() => viewApplicationDetails(application, job)}
                                   className="text-blue-600 hover:text-blue-900"
                                   title="View Application Details"
                                 >
                                   <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => deleteApplication(application._id, job._id)}
+                                  className="text-red-600 hover:text-red-900"
+                                  title="Delete Application"
+                                >
+                                  <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
                             </td>
