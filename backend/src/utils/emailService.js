@@ -1,35 +1,33 @@
 const nodemailer = require('nodemailer');
 
-// Create reusable transporter object
+// Create reusable transporter object using Brevo SMTP
 const createTransporter = () => {
+  // Brevo SMTP configuration
+  // EMAIL_USER should be your Brevo sender email
+  // EMAIL_PASSWORD should be your Brevo SMTP key (not account password)
   const emailUser = process.env.EMAIL_USER || 'info@staffdox.co.in';
-  const emailPass = process.env.EMAIL_PASSWORD;
+  const emailPass = process.env.EMAIL_PASSWORD || process.env.BREVO_SMTP_KEY;
   
-  console.log('Creating email transporter with user:', emailUser); // Debug log
-  
-  // If using Gmail or Google Workspace, use 'gmail' service
-  // Otherwise, use custom SMTP configuration
-  if (emailUser.includes('@gmail.com') || emailUser.includes('@googlemail.com')) {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: emailUser,
-        pass: emailPass
-      }
-    });
-  } else {
-    // For custom domains, use SMTP configuration
-    // You may need to adjust these settings based on your email provider
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: process.env.SMTP_PORT || 587,
-      secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
-      auth: {
-        user: emailUser,
-        pass: emailPass
-      }
-    });
+  if (!emailPass) {
+    throw new Error('Email service not configured: EMAIL_PASSWORD or BREVO_SMTP_KEY is required');
   }
+  
+  console.log('Creating Brevo SMTP transporter with user:', emailUser); // Debug log
+  
+  // Brevo SMTP configuration
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true' || false, // false for 587 (TLS), true for 465 (SSL)
+    auth: {
+      user: emailUser,
+      pass: emailPass // This should be your Brevo SMTP key
+    },
+    // Optional: Add connection timeout
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000
+  });
 };
 
 // Welcome email template
