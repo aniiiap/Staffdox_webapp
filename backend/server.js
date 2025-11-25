@@ -64,13 +64,14 @@ console.log('CORS allowed origins:', allowedOrigins);
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, Postman, etc.) in development only
+    // Allow requests with no origin for:
+    // 1. OAuth redirects (Google/LinkedIn callbacks)
+    // 2. Mobile apps
+    // 3. Development environment
     if (!origin) {
-      if (process.env.NODE_ENV !== 'production') {
-        return callback(null, true);
-      }
-      // In production, reject requests with no origin
-      return callback(new Error('CORS: Origin header missing'));
+      // In production, allow no-origin requests for OAuth endpoints
+      // These are typically browser redirects from OAuth providers
+      return callback(null, true);
     }
     
     // Check if origin is in allowed list

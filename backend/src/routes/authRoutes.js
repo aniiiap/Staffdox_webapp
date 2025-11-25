@@ -71,11 +71,24 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 // Google OAuth - callback
 router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login' }), (req, res) => {
-  // user available at req.user
-  const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-  // redirect to client with token in query (or set cookie)
-  const redirectUrl = `${process.env.CLIENT_URL}/oauth-callback?token=${token}`;
-  res.redirect(redirectUrl);
+  try {
+    // user available at req.user
+    if (!req.user) {
+      console.error('Google OAuth callback: No user found');
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+    }
+    
+    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    // redirect to client with token in query
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const redirectUrl = `${clientUrl}/oauth-callback?token=${token}`;
+    res.redirect(redirectUrl);
+  } catch (error) {
+    console.error('Google OAuth callback error:', error);
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    res.redirect(`${clientUrl}/login?error=oauth_error`);
+  }
 });
 
 
@@ -85,9 +98,22 @@ router.get('/linkedin', passport.authenticate('linkedin', { scope: ['profile', '
 router.get('/linkedin/callback', 
   passport.authenticate('linkedin', { session: true, failureRedirect: '/login' }),
   (req, res) => {
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    const redirectUrl = `${process.env.CLIENT_URL}/oauth-callback?token=${token}`;
-    res.redirect(redirectUrl);
+    try {
+      if (!req.user) {
+        console.error('LinkedIn OAuth callback: No user found');
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+        return res.redirect(`${clientUrl}/login?error=oauth_failed`);
+      }
+      
+      const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      const redirectUrl = `${clientUrl}/oauth-callback?token=${token}`;
+      res.redirect(redirectUrl);
+    } catch (error) {
+      console.error('LinkedIn OAuth callback error:', error);
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+      res.redirect(`${clientUrl}/login?error=oauth_error`);
+    }
   }
 );
 
