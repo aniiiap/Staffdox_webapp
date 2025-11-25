@@ -223,7 +223,7 @@ export default function EmployerLogin() {
         type: 'mobile',
         purpose: 'registration'
       });
-      // In development, OTP is returned in response
+      // Always show OTP in toast if it's returned in response (when SMS service is not configured)
       if (response.data.otp) {
         toast.success(`OTP sent! Your OTP is: ${response.data.otp}`, { duration: 10000 });
       } else {

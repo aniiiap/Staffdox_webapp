@@ -281,10 +281,15 @@ const generateAndSendOTP = async (req, res) => {
 
     // Send OTP
     let sendResult = { success: false };
+    let smsServiceConfigured = false;
     try {
       if (type === 'mobile') {
+        // Check if SMS service is configured
+        smsServiceConfigured = !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) ||
+                                !!(process.env.MSG91_AUTH_KEY && process.env.MSG91_SENDER_ID);
         sendResult = await sendSMS(cleanedIdentifier, otp);
       } else {
+        smsServiceConfigured = !!process.env.EMAIL_PASSWORD;
         sendResult = await sendEmailOTP(cleanedIdentifier, otp);
       }
     } catch (sendError) {
@@ -311,10 +316,15 @@ const generateAndSendOTP = async (req, res) => {
       console.log(`[DEV MODE] ${type === 'mobile' ? 'SMS' : 'Email'} OTP to ${cleanedIdentifier}: ${otp}`);
     }
 
+    // Return OTP in response if:
+    // 1. In development mode, OR
+    // 2. SMS/Email service is not configured (so user can see OTP in toast)
+    const shouldReturnOTP = process.env.NODE_ENV !== 'production' || !smsServiceConfigured || !sendResult?.success;
+
     res.json({ 
       message: `OTP sent to your ${type}`,
-      // In development, always return OTP in response for testing
-      ...(process.env.NODE_ENV !== 'production' && { otp })
+      // Return OTP in response when service is not configured or in dev mode
+      ...(shouldReturnOTP && { otp })
     });
   } catch (error) {
     console.error('Generate OTP error:', error);
