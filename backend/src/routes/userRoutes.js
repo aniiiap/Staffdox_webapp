@@ -138,7 +138,7 @@ router.put('/me', auth, async (req, res) => {
     const { password, resume, workExperience, education, jobPreferences, ...updates } = req.body;
     
     // Fields that should not be updated directly
-    const systemFields = ['_id', 'id', 'createdAt', 'updatedAt', 'email', 'role', 'googleId', 'linkedinId', 'passwordHash', 'appliedJobs', 'isActive', 'emailVerified', 'lastLogin', 'plan', 'passwordResetToken', 'passwordResetExpires', 'passwordResetUsed', 'profileCompleteness'];
+    const systemFields = ['_id', 'id', 'createdAt', 'updatedAt', 'email', 'role', 'googleId', 'linkedinId', 'passwordHash', 'appliedJobs', 'isActive', 'emailVerified', 'lastLogin', 'passwordResetToken', 'passwordResetExpires', 'passwordResetUsed', 'profileCompleteness'];
     
     // Build update object
     const updateObj = {};
