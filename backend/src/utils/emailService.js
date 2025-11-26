@@ -1,44 +1,58 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Create reusable transporter object using Resend SMTP
+// Create a reusable "transporter-like" object using Resend HTTP API (no SMTP)
 const createTransporter = () => {
-  // Resend SMTP configuration
   // RESEND_API_KEY should be your Resend API key (starts with re_)
   // EMAIL_USER should be your verified sender email (e.g., info@staffdox.co.in)
   const emailUser = process.env.EMAIL_USER || 'info@staffdox.co.in';
   const resendApiKey = process.env.RESEND_API_KEY;
-  
+
   if (!resendApiKey) {
-    throw new Error('Email service not configured: RESEND_API_KEY is required. Get your Resend API key from https://resend.com/api-keys');
+    throw new Error(
+      'Email service not configured: RESEND_API_KEY is required. Get your Resend API key from https://resend.com/api-keys'
+    );
   }
-  
-  console.log('Creating Resend SMTP transporter with user:', emailUser); // Debug log
+
+  console.log('Creating Resend API client with user:', emailUser);
   console.log('Resend API Key present:', !!resendApiKey);
   console.log('Resend API Key starts with re_:', resendApiKey?.startsWith('re_'));
-  
-  // Resend SMTP configuration
-  // Resend uses smtp.resend.com with port 587 (TLS) or 465 (SSL)
-  const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-  const useSecure = smtpPort === 465 || process.env.SMTP_SECURE === 'true';
-  
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.resend.com',
-    port: smtpPort,
-    secure: useSecure, // true for 465 (SSL), false for 587 (TLS)
-    auth: {
-      user: 'resend', // Resend SMTP username is always 'resend'
-      pass: resendApiKey // Your Resend API key (starts with re_)
+
+  const resend = new Resend(resendApiKey);
+
+  // Return an object that mimics Nodemailer's transporter.sendMail API
+  return {
+    /**
+     * sendMail(options)
+     * options: { from, to, subject, html, text, replyTo }
+     */
+    sendMail: async (options) => {
+      const {
+        from,
+        to,
+        subject,
+        html,
+        text,
+        replyTo, // our code uses replyTo, Resend expects reply_to
+      } = options;
+
+      const fromAddress = from || `Staffdox <${emailUser}>`;
+
+      const response = await resend.emails.send({
+        from: fromAddress,
+        to,
+        subject,
+        html,
+        text,
+        reply_to: replyTo,
+      });
+
+      // Normalise to look similar to Nodemailer's response where we use messageId
+      return {
+        messageId: response.id,
+        ...response,
+      };
     },
-    // Connection timeout settings
-    connectionTimeout: 30000, // 30 seconds
-    greetingTimeout: 30000,   // 30 seconds
-    socketTimeout: 30000,     // 30 seconds
-    // TLS options
-    tls: {
-      rejectUnauthorized: true,
-      minVersion: 'TLSv1.2'
-    }
-  });
+  };
 };
 
 // Welcome email template
