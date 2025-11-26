@@ -1,32 +1,43 @@
 const nodemailer = require('nodemailer');
 
-// Create reusable transporter object using Brevo SMTP
+// Create reusable transporter object using Resend SMTP
 const createTransporter = () => {
-  // Brevo SMTP configuration
-  // EMAIL_USER should be your Brevo sender email
-  // EMAIL_PASSWORD should be your Brevo SMTP key (not account password)
+  // Resend SMTP configuration
+  // RESEND_API_KEY should be your Resend API key (starts with re_)
+  // EMAIL_USER should be your verified sender email (e.g., info@staffdox.co.in)
   const emailUser = process.env.EMAIL_USER || 'info@staffdox.co.in';
-  const emailPass = process.env.EMAIL_PASSWORD || process.env.BREVO_SMTP_KEY;
+  const resendApiKey = process.env.RESEND_API_KEY;
   
-  if (!emailPass) {
-    throw new Error('Email service not configured: EMAIL_PASSWORD or BREVO_SMTP_KEY is required');
+  if (!resendApiKey) {
+    throw new Error('Email service not configured: RESEND_API_KEY is required. Get your Resend API key from https://resend.com/api-keys');
   }
   
-  console.log('Creating Brevo SMTP transporter with user:', emailUser); // Debug log
+  console.log('Creating Resend SMTP transporter with user:', emailUser); // Debug log
+  console.log('Resend API Key present:', !!resendApiKey);
+  console.log('Resend API Key starts with re_:', resendApiKey?.startsWith('re_'));
   
-  // Brevo SMTP configuration
+  // Resend SMTP configuration
+  // Resend uses smtp.resend.com with port 587 (TLS) or 465 (SSL)
+  const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+  const useSecure = smtpPort === 465 || process.env.SMTP_SECURE === 'true';
+  
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-    port: parseInt(process.env.SMTP_PORT || '587', 10),
-    secure: process.env.SMTP_SECURE === 'true' || false, // false for 587 (TLS), true for 465 (SSL)
+    host: process.env.SMTP_HOST || 'smtp.resend.com',
+    port: smtpPort,
+    secure: useSecure, // true for 465 (SSL), false for 587 (TLS)
     auth: {
-      user: emailUser,
-      pass: emailPass // This should be your Brevo SMTP key
+      user: 'resend', // Resend SMTP username is always 'resend'
+      pass: resendApiKey // Your Resend API key (starts with re_)
     },
-    // Optional: Add connection timeout
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 10000
+    // Connection timeout settings
+    connectionTimeout: 30000, // 30 seconds
+    greetingTimeout: 30000,   // 30 seconds
+    socketTimeout: 30000,     // 30 seconds
+    // TLS options
+    tls: {
+      rejectUnauthorized: true,
+      minVersion: 'TLSv1.2'
+    }
   });
 };
 
@@ -251,7 +262,7 @@ const getEmployerWelcomeEmailTemplate = (firstName, lastName, companyName) => {
 const sendWelcomeEmail = async (email, firstName, lastName) => {
   try {
     // Only send email if credentials are configured
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping welcome email.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -283,7 +294,7 @@ const sendWelcomeEmail = async (email, firstName, lastName) => {
 const sendEmployerWelcomeEmail = async (email, firstName, lastName, companyName) => {
   try {
     // Only send email if credentials are configured
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping employer welcome email.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -522,7 +533,7 @@ const getJobNotificationTemplate = (job) => {
 // Send subscription confirmation email
 const sendSubscriptionConfirmation = async (email, unsubscribeToken) => {
   try {
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping subscription confirmation email.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -551,7 +562,7 @@ const sendSubscriptionConfirmation = async (email, unsubscribeToken) => {
 // Send job notification to all subscribers
 const sendJobNotificationToSubscribers = async (job) => {
   try {
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping job notification emails.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -699,7 +710,7 @@ const getPasswordResetTemplate = (resetLink, email, isEmployer = false) => {
 // Send password reset email
 const sendPasswordResetEmail = async (email, resetLink, isEmployer = false) => {
   try {
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping password reset email.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -878,7 +889,7 @@ const getContactConfirmationTemplate = (name) => {
 // Send contact form email to admin
 const sendContactEmail = async (contactData) => {
   try {
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping contact email.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -907,7 +918,7 @@ const sendContactEmail = async (contactData) => {
 // Send contact confirmation email to sender
 const sendContactConfirmation = async (email, name) => {
   try {
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping contact confirmation email.');
       return { success: false, message: 'Email service not configured' };
     }
@@ -1034,7 +1045,7 @@ const getSalesEnquiryThankYouTemplate = (contactName, companyName) => {
 // Send sales enquiry thank you email
 const sendSalesEnquiryThankYou = async (email, contactName, companyName) => {
   try {
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log('Email service not configured. Skipping sales enquiry thank you email.');
       return { success: false, message: 'Email service not configured' };
     }

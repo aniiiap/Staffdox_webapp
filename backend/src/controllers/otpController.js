@@ -95,7 +95,7 @@ const sendEmailOTP = async (email, otp) => {
     const { createTransporter } = require('../utils/emailService');
     
     // In development, if email is not configured, just log and return success
-    if (!process.env.EMAIL_PASSWORD) {
+    if (!process.env.RESEND_API_KEY) {
       console.log(`[DEV MODE] Email OTP to ${email}: ${otp}`);
       return { success: true };
     }
