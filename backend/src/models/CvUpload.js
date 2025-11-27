@@ -54,6 +54,14 @@ const cvUploadSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  commentReason: {
+    type: String,
+    trim: true
+  },
+  commentDescription: {
+    type: String,
+    trim: true
+  },
   createdAt: {
     type: Date,
     default: Date.now

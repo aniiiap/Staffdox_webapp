@@ -17,7 +17,8 @@ const {
   downloadCv,
   viewCv,
   getCvsForRecruiter,
-  checkCvAccess
+  checkCvAccess,
+  updateCvComments
 } = require('../controllers/cvController');
 
 // All routes require admin authentication
@@ -58,6 +59,7 @@ router.get('/cvs', requireAdmin, getCvs);
 router.delete('/cvs/:id', requireAdmin, deleteCv);
 router.get('/cvs/:id/download', requireAdmin, downloadCv);
 router.get('/cvs/:id/view', requireAdmin, viewCv);
+router.put('/cvs/:id/notes', requireAdmin, updateCvComments);
 
 // Recruiter CV routes (require recruiter role)
 const requireRecruiter = (req, res, next) => {

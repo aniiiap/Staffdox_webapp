@@ -24,7 +24,8 @@ import {
   Folder,
   FolderPlus,
   Upload,
-  FolderOpen
+  FolderOpen,
+  Edit3
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -59,6 +60,7 @@ export default function AdminDashboard() {
   const [applicationsPage, setApplicationsPage] = useState(1);
   const [resumesPage, setResumesPage] = useState(1);
   const [usersPage, setUsersPage] = useState(1);
+  const [cvPage, setCvPage] = useState(1);
   const pageSize = 10;
 
   // CV Management state
@@ -74,6 +76,13 @@ export default function AdminDashboard() {
   const [showCvPreviewModal, setShowCvPreviewModal] = useState(false);
   const [cvPreviewUrl, setCvPreviewUrl] = useState(null);
   const [cvPreviewLoading, setCvPreviewLoading] = useState(false);
+  const [showCvCommentModal, setShowCvCommentModal] = useState(false);
+  const [cvCommentLoading, setCvCommentLoading] = useState(false);
+  const [cvCommentForm, setCvCommentForm] = useState({
+    cvId: null,
+    reason: '',
+    description: ''
+  });
   const [folderForm, setFolderForm] = useState({
     name: '',
     description: '',
@@ -775,6 +784,36 @@ export default function AdminDashboard() {
     }
   };
 
+  const openCvCommentModal = (cv) => {
+    setCvCommentForm({
+      cvId: cv._id,
+      reason: cv.commentReason || '',
+      description: cv.commentDescription || ''
+    });
+    setShowCvCommentModal(true);
+  };
+
+  const saveCvComment = async (e) => {
+    e.preventDefault();
+    if (!cvCommentForm.cvId) return;
+    try {
+      setCvCommentLoading(true);
+      await API.put(`/api/cv/cvs/${cvCommentForm.cvId}/notes`, {
+        reason: cvCommentForm.reason,
+        description: cvCommentForm.description
+      });
+      toast.success('Comment saved for CV');
+      setShowCvCommentModal(false);
+      setCvCommentLoading(false);
+      setCvCommentForm({ cvId: null, reason: '', description: '' });
+      fetchCvUploads();
+    } catch (error) {
+      console.error('Save CV comment error:', error);
+      toast.error(error.response?.data?.message || 'Failed to save comment');
+      setCvCommentLoading(false);
+    }
+  };
+
   const downloadCv = async (cv) => {
     try {
       // CV now has Cloudinary URL - create download link
@@ -810,6 +849,8 @@ export default function AdminDashboard() {
       cv.candidateEmail?.toLowerCase().includes(cvFilter.search.toLowerCase());
     return matchesFolder && matchesSearch;
   });
+  const cvTotalPages = Math.max(1, Math.ceil(filteredCvs.length / pageSize));
+  const pagedCvs = filteredCvs.slice((cvPage - 1) * pageSize, cvPage * pageSize);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -1253,6 +1294,40 @@ export default function AdminDashboard() {
                     Next
                   </button>
                 </div>
+                {/* CVs Pagination */}
+                {filteredCvs.length > 0 && (
+                  <div className="px-6 py-3 bg-gray-50 flex justify-center">
+                    <nav className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setCvPage(prev => Math.max(1, prev - 1))}
+                        disabled={cvPage === 1}
+                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Previous
+                      </button>
+                      {[...Array(cvTotalPages)].map((_, i) => (
+                        <button
+                          key={i + 1}
+                          onClick={() => setCvPage(i + 1)}
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${
+                            cvPage === i + 1
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {i + 1}
+                        </button>
+                      ))}
+                      <button
+                        onClick={() => setCvPage(prev => Math.min(cvTotalPages, prev + 1))}
+                        disabled={cvPage === cvTotalPages}
+                        className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Next
+                      </button>
+                    </nav>
+                  </div>
+                )}
               </div>
             </div>
           </>
@@ -1911,12 +1986,36 @@ export default function AdminDashboard() {
                             <input
                               type="text"
                               value={cvFilter.search}
-                              onChange={(e) => setCvFilter({ ...cvFilter, search: e.target.value })}
+                              onChange={(e) => {
+                                setCvFilter({ ...cvFilter, search: e.target.value });
+                                setCvPage(1);
+                              }}
                               placeholder="Search CVs..."
                               className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                           </div>
                         </div>
+                        {filteredCvs.length > 0 && (
+                          <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                            <button
+                              onClick={() => setCvPage(prev => Math.max(1, prev - 1))}
+                              disabled={cvPage === 1}
+                              className="px-2 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Prev
+                            </button>
+                            <span>
+                              Page {cvPage} of {cvTotalPages}
+                            </span>
+                            <button
+                              onClick={() => setCvPage(prev => Math.min(cvTotalPages, prev + 1))}
+                              disabled={cvPage === cvTotalPages}
+                              className="px-2 py-1 border rounded-md bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              Next
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1928,12 +2027,12 @@ export default function AdminDashboard() {
                             <input
                               type="checkbox"
                               className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              checked={selectAllCvs && filteredCvs.length > 0}
+                              checked={selectAllCvs && pagedCvs.length > 0}
                               onChange={(e) => {
                                 const checked = e.target.checked;
                                 setSelectAllCvs(checked);
                                 if (checked) {
-                                  setSelectedCvIds(filteredCvs.map(cv => cv._id));
+                                  setSelectedCvIds(pagedCvs.map(cv => cv._id));
                                 } else {
                                   setSelectedCvIds([]);
                                 }
@@ -1966,14 +2065,14 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                           </tr>
-                        ) : filteredCvs.length === 0 ? (
+                        ) : pagedCvs.length === 0 ? (
                           <tr>
                             <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                               {cvFilter.folderId ? 'No CVs in this folder' : 'No CVs uploaded yet'}
                             </td>
                           </tr>
                         ) : (
-                          filteredCvs.map(cv => (
+                          pagedCvs.map(cv => (
                             <tr key={cv._id} className="hover:bg-gray-50">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <input
@@ -2024,6 +2123,13 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => openCvCommentModal(cv)}
+                                    className="text-indigo-600 hover:text-indigo-900"
+                                    title={cv.commentReason || cv.commentDescription ? 'View / edit comment' : 'Add comment'}
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                  </button>
                                   <button
                                     onClick={() => viewCv(cv)}
                                     className="text-blue-600 hover:text-blue-900"
@@ -3122,6 +3228,79 @@ export default function AdminDashboard() {
                     className="w-full h-full border-0 rounded-b-lg"
                   />
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CV Comment Modal */}
+        {showCvCommentModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full shadow-2xl">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">CV Comment</h2>
+                  <button
+                    onClick={() => {
+                      if (cvCommentLoading) return;
+                      setShowCvCommentModal(false);
+                      setCvCommentForm({ cvId: null, reason: '', description: '' });
+                    }}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <form onSubmit={saveCvComment} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Reason (optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={cvCommentForm.reason}
+                      onChange={(e) => setCvCommentForm(prev => ({ ...prev, reason: e.target.value }))}
+                      placeholder="e.g., Strong profile, Follow up later"
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Description (optional)
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={cvCommentForm.description}
+                      onChange={(e) => setCvCommentForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Add any detailed notes about this CV..."
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (cvCommentLoading) return;
+                        setShowCvCommentModal(false);
+                        setCvCommentForm({ cvId: null, reason: '', description: '' });
+                      }}
+                      className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                      disabled={cvCommentLoading}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                      disabled={cvCommentLoading}
+                    >
+                      {cvCommentLoading ? 'Saving...' : 'Save Comment'}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>

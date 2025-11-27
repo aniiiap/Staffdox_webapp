@@ -351,7 +351,7 @@ const getCvs = async (req, res) => {
     const cvs = await CvUpload.find(query)
       .populate('folder', 'name role')
       .populate('uploadedBy', 'firstName lastName email')
-      .select('originalName fileName filePath cloudinaryUrl cloudinaryPublicId fileSize mimeType folder uploadedBy candidateName candidateEmail notes createdAt')
+      .select('originalName fileName filePath cloudinaryUrl cloudinaryPublicId fileSize mimeType folder uploadedBy candidateName candidateEmail notes commentReason commentDescription createdAt')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -359,6 +359,36 @@ const getCvs = async (req, res) => {
   } catch (error) {
     console.error('Get CVs error:', error);
     res.status(500).json({ message: error.message || 'Failed to fetch CVs' });
+  }
+};
+
+// Update CV comments (reason & description)
+const updateCvComments = async (req, res) => {
+  try {
+    const { reason, description } = req.body;
+
+    const cv = await CvUpload.findById(req.params.id).populate('folder');
+
+    if (!cv) {
+      return res.status(404).json({ message: 'CV not found' });
+    }
+
+    // Verify ownership through folder
+    if (cv.folder.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    cv.commentReason = reason || '';
+    cv.commentDescription = description || '';
+    await cv.save();
+
+    res.json({
+      message: 'CV comments updated successfully',
+      cv
+    });
+  } catch (error) {
+    console.error('Update CV comments error:', error);
+    res.status(500).json({ message: error.message || 'Failed to update CV comments' });
   }
 };
 
@@ -637,6 +667,7 @@ module.exports = {
   viewCv,
   getCvsForRecruiter,
   checkCvAccess,
-  checkCvAccessHelper
+  checkCvAccessHelper,
+  updateCvComments
 };
 

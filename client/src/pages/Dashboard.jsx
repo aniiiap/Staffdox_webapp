@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import API from "../utils/api";
-import { UserCircle2, X, Briefcase, Users, TrendingUp, FileText, ArrowRight, CheckCircle, Star, Target, Award, MessageCircle } from "lucide-react";
+import { UserCircle2, X, Briefcase, Users, TrendingUp, FileText, ArrowRight, CheckCircle, Star, Target, Award, MessageCircle, Folder } from "lucide-react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
@@ -244,22 +244,43 @@ export default function Dashboard() {
                 <p className="text-sm text-blue-600 font-medium">Open Dashboard →</p>
               </Link>
             ) : (
-              <Link
-                to="/admin?tab=resumes"
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <FileText className="w-6 h-6 text-blue-600" />
+              <>
+                {/* Admin: Resumes card */}
+                <Link
+                  to="/admin?tab=resumes"
+                  className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <FileText className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-gray-400" />
                   </div>
-                  <ArrowRight className="w-5 h-5 text-gray-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Resumes</h3>
-                <p className="text-sm text-gray-600 mb-2">
-                  View all uploaded resumes
-                </p>
-                <p className="text-sm text-blue-600 font-medium">Open Resumes →</p>
-              </Link>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Resumes</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    View all uploaded resumes
+                  </p>
+                  <p className="text-sm text-blue-600 font-medium">Open Resumes →</p>
+                </Link>
+
+                {/* Admin: CV Management card */}
+                <Link
+                  to="/admin?tab=cv-management"
+                  className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow border border-gray-100"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                      <Folder className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">CV Management</h3>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Organize CV folders and manage uploaded CVs
+                  </p>
+                  <p className="text-sm text-blue-600 font-medium">Open CV Management →</p>
+                </Link>
+              </>
             )}
 
             {me.role === 'user' && (
