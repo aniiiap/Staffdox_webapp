@@ -68,22 +68,31 @@ export default function AdminDashboard() {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [showCvUploadModal, setShowCvUploadModal] = useState(false);
   const [cvLoading, setCvLoading] = useState(false);
+  const [selectedCvIds, setSelectedCvIds] = useState([]);
+  const [selectedFolderIds, setSelectedFolderIds] = useState([]);
+  const [selectAllCvs, setSelectAllCvs] = useState(false);
+  const [showCvPreviewModal, setShowCvPreviewModal] = useState(false);
+  const [cvPreviewUrl, setCvPreviewUrl] = useState(null);
+  const [cvPreviewLoading, setCvPreviewLoading] = useState(false);
   const [folderForm, setFolderForm] = useState({
     name: '',
     description: '',
-    role: ''
+    role: '',
+    files: []
   });
   const [cvUploadForm, setCvUploadForm] = useState({
     folderId: '',
     candidateName: '',
     candidateEmail: '',
     notes: '',
-    file: null
+    files: []
   });
   const [cvFilter, setCvFilter] = useState({
     folderId: '',
     search: ''
   });
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
+  const [isUploadingCv, setIsUploadingCv] = useState(false);
 
   const categories = [
     'Technology', 'Finance', 'Healthcare', 'Marketing', 'Sales',
@@ -625,20 +634,25 @@ export default function AdminDashboard() {
   };
 
   const createFolder = async (e) => {
-    e.preventDefault();
+    // This function is now used by the enhanced onSubmit handler in the modal,
+    // so it should only be responsible for calling the API and returning the folder.
+    e.preventDefault && e.preventDefault();
     if (!folderForm.name.trim()) {
       toast.error('Folder name is required');
-      return;
+      return null;
     }
 
     try {
-      await API.post('/api/cv/folders', folderForm);
+      const response = await API.post('/api/cv/folders', {
+        name: folderForm.name,
+        description: folderForm.description,
+        role: folderForm.role
+      });
       toast.success('Folder created successfully');
-      setShowFolderModal(false);
-      setFolderForm({ name: '', description: '', role: '' });
-      fetchCvFolders();
+      return response.data.folder;
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create folder');
+      throw error;
     }
   };
 
@@ -662,8 +676,11 @@ export default function AdminDashboard() {
 
   const uploadCv = async (e) => {
     e.preventDefault();
-    if (!cvUploadForm.file) {
-      toast.error('Please select a file');
+
+    if (isUploadingCv) return;
+
+    if (!cvUploadForm.files || cvUploadForm.files.length === 0) {
+      toast.error('Please select at least one CV file to upload');
       return;
     }
     if (!cvUploadForm.folderId) {
@@ -671,46 +688,47 @@ export default function AdminDashboard() {
       return;
     }
 
-    // Check file size (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (cvUploadForm.file.size > maxSize) {
-      toast.error('File size exceeds 5MB limit. Please choose a smaller file.');
-      return;
-    }
-
     try {
-      const formData = new FormData();
-      formData.append('cv', cvUploadForm.file);
-      formData.append('folderId', cvUploadForm.folderId);
-      if (cvUploadForm.candidateName) {
-        formData.append('candidateName', cvUploadForm.candidateName);
-      }
-      if (cvUploadForm.candidateEmail) {
-        formData.append('candidateEmail', cvUploadForm.candidateEmail);
-      }
-      if (cvUploadForm.notes) {
-        formData.append('notes', cvUploadForm.notes);
-      }
-
-      await API.post('/api/cv/cvs/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      setIsUploadingCv(true);
+      const uploads = cvUploadForm.files.map((file) => {
+        const formData = new FormData();
+        formData.append('cv', file);
+        formData.append('folderId', cvUploadForm.folderId);
+        if (cvUploadForm.candidateName) {
+          formData.append('candidateName', cvUploadForm.candidateName);
         }
+        if (cvUploadForm.candidateEmail) {
+          formData.append('candidateEmail', cvUploadForm.candidateEmail);
+        }
+        if (cvUploadForm.notes) {
+          formData.append('notes', cvUploadForm.notes);
+        }
+
+        return API.post('/api/cv/cvs/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
       });
 
-      toast.success('CV uploaded successfully');
+      await Promise.all(uploads);
+
+      toast.success(`Uploaded ${cvUploadForm.files.length} CV(s) successfully`);
       setShowCvUploadModal(false);
       setCvUploadForm({
         folderId: '',
         candidateName: '',
         candidateEmail: '',
         notes: '',
-        file: null
+        files: []
       });
       fetchCvFolders();
       fetchCvUploads();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to upload CV');
+      console.error('Upload CV error:', error);
+      toast.error(error.response?.data?.message || 'Failed to upload CV(s)');
+    } finally {
+      setIsUploadingCv(false);
     }
   };
 
@@ -731,34 +749,29 @@ export default function AdminDashboard() {
 
   const viewCv = async (cv) => {
     try {
+      setCvPreviewLoading(true);
+      setShowCvPreviewModal(true);
       // Fetch PDF through authenticated API to include auth token
       const response = await API.get(`/api/cv/cvs/${cv._id}/view`, {
         responseType: 'blob'
       });
-      
-      // Create blob URL from response
+
+      // Create blob URL from response and store it for iframe preview
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const blobUrl = URL.createObjectURL(blob);
-      
-      // Open blob URL in new tab (this will display inline, not download)
-      const newWindow = window.open(blobUrl, '_blank');
-      
-      // Clean up blob URL after window opens
-      if (newWindow) {
-        setTimeout(() => {
-          URL.revokeObjectURL(blobUrl);
-        }, 1000);
-      } else {
-        // If popup blocked, create download link
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.target = '_blank';
-        link.click();
-        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
+      // Revoke previous URL if any
+      if (cvPreviewUrl) {
+        URL.revokeObjectURL(cvPreviewUrl);
       }
+
+      setCvPreviewUrl(blobUrl);
+      setCvPreviewLoading(false);
     } catch (error) {
       console.error('View CV error:', error);
       toast.error('Failed to view CV');
+      setCvPreviewLoading(false);
+      setShowCvPreviewModal(false);
     }
   };
 
@@ -1708,16 +1721,42 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">CV Management</h3>
                   <p className="text-sm text-gray-600">Organize and manage CVs by folders</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  {selectedFolderIds.length > 0 && (
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(`Delete ${selectedFolderIds.length} selected folder(s) and all their CVs? This cannot be undone.`)) {
+                          return;
+                        }
+                        try {
+                          await Promise.all(
+                            selectedFolderIds.map(id => API.delete(`/api/cv/folders/${id}`))
+                          );
+                          toast.success('Selected folders deleted successfully');
+                          setSelectedFolderIds([]);
+                          fetchCvFolders();
+                          fetchCvUploads();
+                        } catch (error) {
+                          console.error('Bulk delete folders error:', error);
+                          toast.error(error.response?.data?.message || 'Failed to delete selected folders');
+                        }
+                      }}
+                      className="bg-red-50 text-red-700 px-4 py-2 rounded-md hover:bg-red-100 flex items-center border border-red-200 text-sm"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Selected Folders
+                    </button>
+                  )}
                   <button
                     onClick={() => {
-                      setFolderForm({ name: '', description: '', role: '' });
+                      setFolderForm({ name: '', description: '', role: '', files: [] });
                       setShowFolderModal(true);
                     }}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={isCreatingFolder || isUploadingCv}
                   >
                     <FolderPlus className="w-4 h-4 mr-2" />
-                    Create Folder
+                    {isCreatingFolder ? 'Creating...' : 'Create Folder'}
                   </button>
                   <button
                     onClick={() => {
@@ -1726,14 +1765,15 @@ export default function AdminDashboard() {
                         candidateName: '',
                         candidateEmail: '',
                         notes: '',
-                        file: null
+                        files: []
                       });
                       setShowCvUploadModal(true);
                     }}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={isUploadingCv || isCreatingFolder}
                   >
                     <Upload className="w-4 h-4 mr-2" />
-                    Upload CV
+                    {isUploadingCv ? 'Uploading...' : 'Upload CV'}
                   </button>
                 </div>
               </div>
@@ -1747,7 +1787,7 @@ export default function AdminDashboard() {
                     <h4 className="text-md font-medium text-gray-900">Folders</h4>
                   </div>
                   <div className="p-4">
-                    <div className="space-y-2 max-h-[600px] overflow-y-auto">
+                          <div className="space-y-2 max-h-[600px] overflow-y-auto">
                       {cvLoading && cvFolders.length === 0 ? (
                         <div className="text-center py-8">
                           <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
@@ -1769,42 +1809,55 @@ export default function AdminDashboard() {
                             <span className="text-xs text-gray-500 ml-2">{cvUploads.length}</span>
                           </div>
                           {cvFolders.map(folder => (
-                        <div
-                          key={folder._id}
-                          className={`w-full p-3 rounded-md hover:bg-gray-50 flex items-center justify-between ${
-                            cvFilter.folderId === folder._id ? 'bg-blue-50 border border-blue-200' : 'border border-gray-200'
-                          }`}
-                        >
-                          <button
-                            onClick={() => {
-                              setCvFilter({ ...cvFilter, folderId: folder._id });
-                              setSelectedFolder(folder);
-                            }}
-                            className="flex items-center flex-1 text-left"
-                          >
-                            <Folder className="w-4 h-4 mr-2 text-blue-500" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-medium text-gray-900 truncate">{folder.name}</div>
-                              {folder.role && (
-                                <div className="text-xs text-gray-500 truncate">{folder.role}</div>
-                              )}
-                            </div>
-                          </button>
-                          <div className="flex items-center gap-2 ml-2">
-                            <span className="text-xs text-gray-500">{folder.cvCount || 0}</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteFolder(folder._id);
-                              }}
-                              className="text-red-500 hover:text-red-700 p-1"
-                              title="Delete folder"
+                            <div
+                              key={folder._id}
+                              className={`w-full p-3 rounded-md hover:bg-gray-50 flex items-center justify-between ${
+                                cvFilter.folderId === folder._id ? 'bg-blue-50 border border-blue-200' : 'border border-gray-200'
+                              }`}
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                              <button
+                                onClick={() => {
+                                  setCvFilter({ ...cvFilter, folderId: folder._id });
+                                  setSelectedFolder(folder);
+                                }}
+                                className="flex items-center flex-1 text-left"
+                              >
+                                <Folder className="w-4 h-4 mr-2 text-blue-500" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-gray-900 truncate">{folder.name}</div>
+                                  {folder.role && (
+                                    <div className="text-xs text-gray-500 truncate">{folder.role}</div>
+                                  )}
+                                </div>
+                              </button>
+                              <div className="flex items-center gap-2 ml-2">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  checked={selectedFolderIds.includes(folder._id)}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setSelectedFolderIds(prev =>
+                                      checked
+                                        ? [...prev, folder._id]
+                                        : prev.filter(id => id !== folder._id)
+                                    );
+                                  }}
+                                />
+                                <span className="text-xs text-gray-500">{folder.cvCount || 0}</span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteFolder(folder._id);
+                                  }}
+                                  className="text-red-500 hover:text-red-700 p-1"
+                                  title="Delete folder"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
                           {cvFolders.length === 0 && (
                             <div className="text-center py-8 text-gray-500 text-sm">
                               No folders yet. Create one to get started.
@@ -1825,16 +1878,44 @@ export default function AdminDashboard() {
                       <h4 className="text-md font-medium text-gray-900">
                         {cvFilter.folderId ? `CVs in ${selectedFolder?.name || 'Folder'}` : 'All CVs'}
                       </h4>
-                      <div className="flex-1 max-w-md">
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <input
-                            type="text"
-                            value={cvFilter.search}
-                            onChange={(e) => setCvFilter({ ...cvFilter, search: e.target.value })}
-                            placeholder="Search CVs..."
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
+                      <div className="flex items-center gap-3">
+                        {selectedCvIds.length > 0 && (
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm(`Delete ${selectedCvIds.length} selected CV(s)? This cannot be undone.`)) {
+                                return;
+                              }
+                              try {
+                                await Promise.all(
+                                  selectedCvIds.map(id => API.delete(`/api/cv/cvs/${id}`))
+                                );
+                                toast.success('Selected CVs deleted successfully');
+                                setSelectedCvIds([]);
+                                setSelectAllCvs(false);
+                                fetchCvFolders();
+                                fetchCvUploads();
+                              } catch (error) {
+                                console.error('Bulk delete CVs error:', error);
+                                toast.error(error.response?.data?.message || 'Failed to delete selected CVs');
+                              }
+                            }}
+                            className="inline-flex items-center px-3 py-2 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md"
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Delete selected
+                          </button>
+                        )}
+                        <div className="flex-1 max-w-md">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="text"
+                              value={cvFilter.search}
+                              onChange={(e) => setCvFilter({ ...cvFilter, search: e.target.value })}
+                              placeholder="Search CVs..."
+                              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1843,6 +1924,22 @@ export default function AdminDashboard() {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                              checked={selectAllCvs && filteredCvs.length > 0}
+                              onChange={(e) => {
+                                const checked = e.target.checked;
+                                setSelectAllCvs(checked);
+                                if (checked) {
+                                  setSelectedCvIds(filteredCvs.map(cv => cv._id));
+                                } else {
+                                  setSelectedCvIds([]);
+                                }
+                              }}
+                            />
+                          </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             CV Name
                           </th>
@@ -1863,7 +1960,7 @@ export default function AdminDashboard() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {cvLoading ? (
                           <tr>
-                            <td colSpan={5} className="px-6 py-10 text-center">
+                            <td colSpan={6} className="px-6 py-10 text-center">
                               <div className="flex items-center justify-center">
                                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
                               </div>
@@ -1871,13 +1968,28 @@ export default function AdminDashboard() {
                           </tr>
                         ) : filteredCvs.length === 0 ? (
                           <tr>
-                            <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                            <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                               {cvFilter.folderId ? 'No CVs in this folder' : 'No CVs uploaded yet'}
                             </td>
                           </tr>
                         ) : (
                           filteredCvs.map(cv => (
                             <tr key={cv._id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <input
+                                  type="checkbox"
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                  checked={selectedCvIds.includes(cv._id)}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setSelectedCvIds(prev =>
+                                      checked
+                                        ? [...prev, cv._id]
+                                        : prev.filter(id => id !== cv._id)
+                                    );
+                                  }}
+                                />
+                              </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center">
                                   <FileText className="w-5 h-5 text-blue-500 mr-2" />
@@ -2668,7 +2780,43 @@ export default function AdminDashboard() {
                   </button>
                 </div>
 
-                <form onSubmit={createFolder} className="space-y-4">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (isCreatingFolder) return;
+                    try {
+                      setIsCreatingFolder(true);
+                      // First create the folder
+                      const folderResponse = await createFolder(e);
+                      // If folder was created and we have files selected for this folder,
+                      // upload them into the new folder
+                      if (folderResponse && folderResponse._id && folderForm.files && folderForm.files.length > 0) {
+                        const uploads = folderForm.files.map((file) => {
+                          const formData = new FormData();
+                          formData.append('cv', file);
+                          formData.append('folderId', folderResponse._id);
+                          return API.post('/api/cv/cvs/upload', formData, {
+                            headers: {
+                              'Content-Type': 'multipart/form-data'
+                            }
+                          });
+                        });
+                        await Promise.all(uploads);
+                        toast.success(`Uploaded ${folderForm.files.length} CV(s) to new folder`);
+                      }
+                      setShowFolderModal(false);
+                      setFolderForm({ name: '', description: '', role: '', files: [] });
+                      fetchCvFolders();
+                      fetchCvUploads();
+                    } catch (err) {
+                      console.error('Create folder with CVs error:', err);
+                      // createFolder already toasts on failure
+                    } finally {
+                      setIsCreatingFolder(false);
+                    }
+                  }}
+                  className="space-y-4"
+                >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Folder Name *
@@ -2709,12 +2857,59 @@ export default function AdminDashboard() {
                     />
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      (Optional) Upload Folder of CVs
+                    </label>
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      multiple
+                      webkitdirectory=""
+                      directory=""
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (!files.length) return;
+                        const maxSize = 5 * 1024 * 1024; // 5MB per file
+                        const validFiles = [];
+                        for (const file of files) {
+                          if (file.size > maxSize) {
+                            toast.error(`File "${file.name}" exceeds 5MB limit and was skipped.`);
+                            continue;
+                          }
+                          validFiles.push(file);
+                        }
+                        setFolderForm((prev) => ({
+                          ...prev,
+                          files: validFiles
+                        }));
+                      }}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {folderForm.files && folderForm.files.length > 0 && (
+                      <div className="mt-2 space-y-1 max-h-32 overflow-y-auto border border-gray-100 rounded-md p-2 bg-gray-50">
+                        <p className="text-xs font-medium text-gray-700">
+                          Selected {folderForm.files.length} file(s) to upload with this folder:
+                        </p>
+                        {folderForm.files.map((file, idx) => (
+                          <p key={idx} className="text-xs text-gray-600 flex justify-between">
+                            <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                            <span className="ml-2">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-end space-x-4 pt-4 border-t">
                     <button
                       type="button"
                       onClick={() => {
-                        setShowFolderModal(false);
-                        setFolderForm({ name: '', description: '', role: '' });
+                      if (isCreatingFolder) return;
+                      setShowFolderModal(false);
+                      setFolderForm({ name: '', description: '', role: '', files: [] });
                       }}
                       className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
                     >
@@ -2722,9 +2917,10 @@ export default function AdminDashboard() {
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                      disabled={isCreatingFolder}
                     >
-                      Create Folder
+                      {isCreatingFolder ? 'Creating...' : 'Create Folder'}
                     </button>
                   </div>
                 </form>
@@ -2748,7 +2944,7 @@ export default function AdminDashboard() {
                         candidateName: '',
                         candidateEmail: '',
                         notes: '',
-                        file: null
+                        files: []
                       });
                     }}
                     className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -2779,35 +2975,46 @@ export default function AdminDashboard() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CV File * (PDF, DOC, DOCX - Max 5MB)
+                      CV Files * (PDF, DOC, DOCX - Max 5MB each)
                     </label>
                     <input
                       type="file"
                       accept=".pdf,.doc,.docx"
+                      multiple
                       onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                          // Check file size (5MB limit)
-                          const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                        const files = Array.from(e.target.files || []);
+                        if (!files.length) return;
+                        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+                        const validFiles = [];
+                        for (const file of files) {
                           if (file.size > maxSize) {
-                            toast.error('File size exceeds 5MB limit. Please choose a smaller file.');
-                            e.target.value = ''; // Clear the input
-                            return;
+                            toast.error(`File "${file.name}" exceeds 5MB limit and was skipped.`);
+                            continue;
                           }
-                          setCvUploadForm({ ...cvUploadForm, file });
+                          validFiles.push(file);
                         }
+                        if (!validFiles.length) {
+                          e.target.value = '';
+                          return;
+                        }
+                        setCvUploadForm({ ...cvUploadForm, files: validFiles });
                       }}
                       required
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    {cvUploadForm.file && (
-                      <div className="mt-1">
-                        <p className="text-sm text-gray-900">
-                          Selected: {cvUploadForm.file.name}
+                    {cvUploadForm.files && cvUploadForm.files.length > 0 && (
+                      <div className="mt-2 space-y-1 max-h-32 overflow-y-auto border border-gray-100 rounded-md p-2 bg-gray-50">
+                        <p className="text-xs font-medium text-gray-700">
+                          Selected {cvUploadForm.files.length} file(s):
                         </p>
-                        <p className="text-xs text-gray-500">
-                          Size: {(cvUploadForm.file.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
+                        {cvUploadForm.files.map((file, idx) => (
+                          <p key={idx} className="text-xs text-gray-600 flex justify-between">
+                            <span className="truncate max-w-[200px]" title={file.name}>{file.name}</span>
+                            <span className="ml-2">
+                              {(file.size / 1024 / 1024).toFixed(2)} MB
+                            </span>
+                          </p>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -2855,27 +3062,66 @@ export default function AdminDashboard() {
                     <button
                       type="button"
                       onClick={() => {
+                        if (isUploadingCv) return;
                         setShowCvUploadModal(false);
                         setCvUploadForm({
                           folderId: '',
                           candidateName: '',
                           candidateEmail: '',
                           notes: '',
-                          file: null
+                          files: []
                         });
                       }}
-                      className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                      className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                      disabled={isUploadingCv}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                      disabled={isUploadingCv}
                     >
-                      Upload CV
+                      {isUploadingCv ? 'Uploading...' : 'Upload CV'}
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CV Preview Modal */}
+        {showCvPreviewModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl max-w-5xl w-full h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">CV Preview</h2>
+                <button
+                  onClick={() => {
+                    setShowCvPreviewModal(false);
+                    if (cvPreviewUrl) {
+                      URL.revokeObjectURL(cvPreviewUrl);
+                      setCvPreviewUrl(null);
+                    }
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 bg-gray-100">
+                {cvPreviewLoading || !cvPreviewUrl ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+                  </div>
+                ) : (
+                  <iframe
+                    src={cvPreviewUrl}
+                    title="CV Preview"
+                    className="w-full h-full border-0 rounded-b-lg"
+                  />
+                )}
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../utils/api';
-import { Plus, Briefcase, Eye, Download, Users, Search, X, FileText, ChevronLeft, ChevronRight, CreditCard, AlertCircle, CheckCircle, Folder, Lock } from 'lucide-react';
+import { Plus, Briefcase, Eye, Download, Users, Search, X, FileText, ChevronLeft, ChevronRight, CreditCard, AlertCircle, CheckCircle, Folder, Lock, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PaymentGateway from '../components/PaymentGateway';
 import OTPVerificationModal from '../components/OTPVerificationModal';
@@ -22,6 +22,7 @@ export default function RecruiterDashboard() {
   const [verifiedMobile, setVerifiedMobile] = useState(null);
   const [paymentUserData, setPaymentUserData] = useState(null);
   const paymentUserDataRef = useRef(null);
+  const [editingJob, setEditingJob] = useState(null);
   const [jobForm, setJobForm] = useState({
     title: '',
     company: '',
@@ -119,34 +120,40 @@ export default function RecruiterDashboard() {
 
   const createJob = async (e) => {
     e.preventDefault();
+
+    const isEditing = !!editingJob;
     
-    // Check if user has an active plan
-    const hasActivePlan = me?.plan?.isActive && me?.plan?.name && 
+    // Check if user has an active plan (required for both create and edit)
+    const hasActivePlanForJob = me?.plan?.isActive && me?.plan?.name &&
       (!me?.plan?.endDate || new Date(me.plan.endDate) > new Date());
-    
-    if (!hasActivePlan) {
-      toast.error('Please subscribe to a plan to create jobs');
+
+    if (!hasActivePlanForJob) {
+      toast.error('Please subscribe to a plan to manage jobs');
       return;
     }
 
-    const plans = [
-      { name: 'Free', maxJobs: 1 },
-      { name: 'Starter', maxJobs: 5 },
-      { name: 'Professional', maxJobs: 20 },
-      { name: 'Enterprise', maxJobs: Infinity }
-    ];
-    const currentPlan = plans.find(p => p.name === me.plan.name);
-    const activeJobsCount = jobs.filter(j => j.status === 'Active').length;
-    
-    if (currentPlan && currentPlan.maxJobs !== Infinity && activeJobsCount >= currentPlan.maxJobs) {
-      toast.error(`You have reached the maximum number of active jobs (${currentPlan.maxJobs}) for your ${me.plan.name} plan. Please upgrade your plan or close existing jobs.`);
-      return;
+    // Enforce plan job limits only when creating a new job
+    if (!isEditing) {
+      const plans = [
+        { name: 'Free', maxJobs: 1 },
+        { name: 'Starter', maxJobs: 5 },
+        { name: 'Professional', maxJobs: 20 },
+        { name: 'Enterprise', maxJobs: Infinity }
+      ];
+      const currentPlan = plans.find(p => p.name === me.plan.name);
+      const activeJobsCount = jobs.filter(j => j.status === 'Active').length;
+
+      if (currentPlan && currentPlan.maxJobs !== Infinity && activeJobsCount >= currentPlan.maxJobs) {
+        toast.error(`You have reached the maximum number of active jobs (${currentPlan.maxJobs}) for your ${me.plan.name} plan. Please upgrade your plan or close existing jobs.`);
+        return;
+      }
     }
 
     if (!jobForm.title.trim() || !jobForm.company.trim() || !jobForm.location.trim() || !jobForm.description.trim() || !jobForm.category) {
       toast.error('Please fill required fields');
       return;
     }
+
     try {
       const payload = {
         title: jobForm.title.trim(),
@@ -173,9 +180,17 @@ export default function RecruiterDashboard() {
         deadline: jobForm.deadline ? new Date(jobForm.deadline) : undefined,
         status: 'Active'
       };
-      await API.post('/api/jobs', payload);
-      toast.success('Job created');
+
+      if (isEditing) {
+        await API.put(`/api/jobs/${editingJob._id}`, payload);
+        toast.success('Job updated successfully');
+      } else {
+        await API.post('/api/jobs', payload);
+        toast.success('Job created');
+      }
+
       setShowCreateModal(false);
+      setEditingJob(null);
       setJobForm({
         title: '', company: '', location: '', description: '',
         requirements: [''], responsibilities: [''], salary: { min: '', max: '', currency: 'INR' },
@@ -189,7 +204,7 @@ export default function RecruiterDashboard() {
       fetchMyJobs();
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || 'Failed to create job');
+      toast.error(err.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} job`);
     }
   };
 
@@ -636,7 +651,24 @@ export default function RecruiterDashboard() {
               toast.error('Please subscribe to a plan to create jobs');
               return;
             }
-            setJobForm(prev => ({ ...prev, company: me?.currentCompany || prev.company }));
+            setEditingJob(null);
+            setJobForm(prev => ({
+              ...prev,
+              title: '',
+              company: me?.currentCompany || prev.company || '',
+              location: '',
+              description: '',
+              requirements: [''],
+              responsibilities: [''],
+              salary: { min: '', max: '', currency: 'INR' },
+              employmentType: 'Full-time',
+              experience: { min: 0, max: 10 },
+              skills: [''],
+              category: '',
+              isRemote: false,
+              benefits: [''],
+              deadline: ''
+            }));
             setShowCreateModal(true);
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
@@ -753,8 +785,45 @@ export default function RecruiterDashboard() {
                         <option value="Draft">Draft</option>
                       </select>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                      <Link to={`/jobs/${job._id}`} className="inline-flex items-center px-3 py-1.5 border rounded-md text-gray-700 hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingJob(job);
+                          setJobForm({
+                            title: job.title || '',
+                            company: job.company || '',
+                            location: job.location || '',
+                            description: job.description || '',
+                            category: job.category || '',
+                            industry: job.industry || 'Other',
+                            requirements: (job.requirements && job.requirements.length > 0) ? job.requirements : [''],
+                            responsibilities: (job.responsibilities && job.responsibilities.length > 0) ? job.responsibilities : [''],
+                            skills: (job.skills && job.skills.length > 0) ? job.skills : [''],
+                            benefits: (job.benefits && job.benefits.length > 0) ? job.benefits : [''],
+                            salary: {
+                              min: job.salary?.min || '',
+                              max: job.salary?.max || '',
+                              currency: job.salary?.currency || 'INR'
+                            },
+                            experience: {
+                              min: job.experience?.min || 0,
+                              max: job.experience?.max || 10
+                            },
+                            employmentType: job.employmentType || 'Full-time',
+                            isRemote: !!job.isRemote,
+                            deadline: job.deadline ? new Date(job.deadline).toISOString().split('T')[0] : '',
+                          });
+                          setShowCreateModal(true);
+                        }}
+                        className="inline-flex items-center px-3 py-1.5 border rounded-md text-gray-700 hover:bg-gray-50"
+                      >
+                        <Edit className="w-4 h-4 mr-1.5" /> Edit
+                      </button>
+                      <Link
+                        to={`/jobs/${job._id}`}
+                        className="inline-flex items-center px-3 py-1.5 border rounded-md text-gray-700 hover:bg-gray-50"
+                      >
                         <Eye className="w-4 h-4 mr-1.5"/> View
                       </Link>
                     </td>
@@ -1654,8 +1723,10 @@ export default function RecruiterDashboard() {
                 </div>
 
                 <div className="flex justify-end space-x-4 pt-6 border-t">
-                  <button type="button" onClick={()=>setShowCreateModal(false)} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancel</button>
-                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Create Job</button>
+                  <button type="button" onClick={()=>{ setShowCreateModal(false); setEditingJob(null); }} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    {editingJob ? 'Update Job' : 'Create Job'}
+                  </button>
                 </div>
               </form>
             </div>
