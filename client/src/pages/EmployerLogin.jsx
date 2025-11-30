@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import API from '../utils/api';
 import toast from 'react-hot-toast';
-import { Building2, Mail, Phone, User, MapPin, Briefcase, Loader, CheckCircle, Check, ArrowRight } from 'lucide-react';
+import { Building2, Mail, Phone, User, MapPin, Briefcase, Loader, CheckCircle, Check, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import EmployerHeader from '../components/EmployerHeader';
 import EmployerFooter from '../components/EmployerFooter';
 import PaymentGateway from '../components/PaymentGateway';
@@ -60,9 +60,9 @@ export default function EmployerLogin() {
       description: 'Try our platform with a free job posting',
       features: [
         'Post 1 job',
-        'Up to 100 database limit',
+        'Up to 5 database limit',
         'Valid for 7 days',
-        'No resume viewing'
+        'View up to 5 applicants & resumes'
       ],
       popular: false
     },
@@ -160,6 +160,9 @@ export default function EmployerLogin() {
   // Login Form
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [loggingIn, setLoggingIn] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
   React.useEffect(() => {
     let timer;
     if (mobileResendCountdown > 0) {
@@ -626,13 +629,21 @@ export default function EmployerLogin() {
                     <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
                     <div className="relative">
                       <input
-                        type="password"
+                        type={showLoginPassword ? 'text' : 'password'}
                         value={loginForm.password}
                         onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                         required
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Enter password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword((prev) => !prev)}
+                        className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                        aria-label={showLoginPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
                   <div className="text-right">
@@ -897,25 +908,45 @@ export default function EmployerLogin() {
                           <>
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
-                              <input
-                                type="password"
-                                value={regForm.password}
-                                onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
-                                required
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Minimum 6 characters"
-                              />
+                              <div className="relative">
+                                <input
+                                  type={showRegPassword ? 'text' : 'password'}
+                                  value={regForm.password}
+                                  onChange={(e) => setRegForm({ ...regForm, password: e.target.value })}
+                                  required
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Minimum 6 characters"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowRegPassword((prev) => !prev)}
+                                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                                  aria-label={showRegPassword ? 'Hide password' : 'Show password'}
+                                >
+                                  {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                              </div>
                             </div>
                             <div>
                               <label className="block text-sm font-medium text-gray-700 mb-1">Confirm Password *</label>
-                              <input
-                                type="password"
-                                value={regForm.confirmPassword}
-                                onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
-                                required
-                                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Re-enter password"
-                              />
+                              <div className="relative">
+                                <input
+                                  type={showRegConfirmPassword ? 'text' : 'password'}
+                                  value={regForm.confirmPassword}
+                                  onChange={(e) => setRegForm({ ...regForm, confirmPassword: e.target.value })}
+                                  required
+                                  className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Re-enter password"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowRegConfirmPassword((prev) => !prev)}
+                                  className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                                  aria-label={showRegConfirmPassword ? 'Hide password' : 'Show password'}
+                                >
+                                  {showRegConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                              </div>
                             </div>
                           </>
                         )}

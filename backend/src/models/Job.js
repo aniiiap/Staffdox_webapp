@@ -85,7 +85,9 @@ const jobSchema = new mongoose.Schema({
       default: 'Applied'
     },
     coverLetter: { type: String },
-    resume: { type: String }
+    resume: { type: String }, // Keep for backward compatibility (filename/public_id)
+    resumeUrl: { type: String }, // Cloudinary URL
+    resumePublicId: { type: String } // Cloudinary public_id for deletion
   }],
   deadline: { type: Date },
   isRemote: { type: Boolean, default: false },

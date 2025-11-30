@@ -24,9 +24,9 @@ export default function EmployerDashboard() {
       description: 'Try our platform with a free job posting',
       features: [
         'Post 1 job',
-        'Up to 100 database limit',
+        'Up to 5 database limit',
         'Valid for 7 days',
-        'No resume viewing'
+        'View up to 5 applicants & resumes'
       ],
       popular: false
     },

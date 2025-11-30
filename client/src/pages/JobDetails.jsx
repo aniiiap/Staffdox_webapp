@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../utils/api';
 import {
   MapPin,
   Briefcase,
   Clock,
-  DollarSign,
+  IndianRupee,
   Building,
   Users,
   Calendar,
@@ -40,60 +40,16 @@ export default function JobDetails() {
     if (formErrors.coverLetter && applicationForm.coverLetter.trim()) {
       setFormErrors(prev => ({ ...prev, coverLetter: '' }));
     }
-  }, [applicationForm.coverLetter]);
+  }, [applicationForm.coverLetter, formErrors.coverLetter]);
 
   useEffect(() => {
     if (formErrors.resume && (applicationForm.resume || user?.resume)) {
       setFormErrors(prev => ({ ...prev, resume: '' }));
     }
-  }, [applicationForm.resume, user?.resume]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setUserLoading(true);
-    if (token) {
-      API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      API.get('/api/user/me')
-        .then(response => {
-          setUser(response.data.user);
-          setUserLoading(false);
-        })
-        .catch(() => {
-          setUser(null);
-          setUserLoading(false);
-        });
-    } else {
-      setUser(null);
-      setUserLoading(false);
-    }
-
-    fetchJob();
-  }, [id]);
-
-  // Recompute application state whenever user or job changes
-  useEffect(() => {
-    if (user && job) {
-      computeApplicationState(user, job);
-    }
-  }, [user, job, id]);
-
-  const fetchJob = async () => {
-    try {
-      setLoading(true);
-      const response = await API.get(`/api/jobs/${id}`);
-      setJob(response.data);
-      // after job loads, recompute application state if user already fetched
-      if (user) computeApplicationState(user, response.data);
-    } catch (error) {
-      toast.error('Failed to fetch job details');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [applicationForm.resume, user?.resume, formErrors.resume]);
 
   // derive if current user has applied to this job and get status
-  const computeApplicationState = (userData, jobData) => {
+  const computeApplicationState = useCallback((userData, jobData) => {
     // Prefer user's appliedJobs for reliable status
     const applied = userData?.appliedJobs?.some(
       (app) => (app.job?._id || app.job)?.toString() === id
@@ -117,7 +73,78 @@ export default function JobDetails() {
         setMyApplicationStatus(found.status || 'Applied');
       }
     }
-  };
+  }, [id]);
+
+  const fetchJob = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await API.get(`/api/jobs/${id}`);
+      setJob(response.data);
+    } catch (error) {
+      toast.error('Failed to fetch job details');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadData = async () => {
+      // Load user data
+      const token = localStorage.getItem('token');
+      setUserLoading(true);
+      
+      if (token) {
+        API.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        try {
+          const response = await API.get('/api/user/me');
+          if (isMounted) {
+            setUser(response.data.user);
+            setUserLoading(false);
+          }
+        } catch (error) {
+          console.error('Error fetching user:', error);
+          if (isMounted) {
+            setUser(null);
+            setUserLoading(false);
+          }
+        }
+      } else {
+        if (isMounted) {
+          setUser(null);
+          setUserLoading(false);
+        }
+      }
+
+      // Load job data
+      if (isMounted) {
+        try {
+          await fetchJob();
+        } catch (error) {
+          console.error('Error fetching job:', error);
+        }
+      }
+    };
+
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, fetchJob]);
+
+  // Recompute application state whenever user or job changes
+  useEffect(() => {
+    if (user && job) {
+      computeApplicationState(user, job);
+    } else {
+      // Reset state if user or job is not available
+      setHasApplied(false);
+      setMyApplicationStatus(null);
+    }
+  }, [user, job, computeApplicationState]);
 
   const handleApplicationSubmit = async (e) => {
     e.preventDefault();
@@ -274,7 +301,7 @@ export default function JobDetails() {
 
               {job.salary && (job.salary.min || job.salary.max) && (
                 <div className="flex items-center">
-                  <DollarSign className="w-4 h-4 mr-2" />
+                  <IndianRupee className="w-4 h-4 mr-2" />
                   <span>{formatSalary(job.salary.min, job.salary.max, job.salary.currency)}</span>
                 </div>
               )}
@@ -317,7 +344,8 @@ export default function JobDetails() {
                     setShowApplicationModal(true);
                   }
                 }}
-                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 flex items-center"
+                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={userLoading}
               >
                 <Send className="w-4 h-4 mr-2" />
                 {user ? 'Apply Now' : 'Login to apply'}
@@ -486,7 +514,8 @@ export default function JobDetails() {
                       }
                     }}
                     rows={6}
-                    placeholder="Tell us why you're interested in this position and what makes you a great fit..."
+                    maxLength={180}
+                    placeholder="Tell us why you're interested in this position and what makes you a great fit... (max 180 characters)"
                     className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {formErrors.coverLetter && (

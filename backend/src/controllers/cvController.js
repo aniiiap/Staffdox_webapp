@@ -527,7 +527,7 @@ const getCvsForRecruiter = async (req, res) => {
     
     // Define plan limits for CV access
     const planLimits = {
-      'Free': { maxCvs: 1, teaserCvs: 3 }, // 1 full access + 3 blurred
+      'Free': { maxCvs: 5, teaserCvs: 0 }, // up to 5 CVs fully accessible
       'Starter': { maxCvs: 10, teaserCvs: 0 },
       'Professional': { maxCvs: 50, teaserCvs: 0 },
       'Enterprise': { maxCvs: Infinity, teaserCvs: 0 }
@@ -543,29 +543,19 @@ const getCvsForRecruiter = async (req, res) => {
     const cvsWithAccess = allCvs.map((cv, index) => {
       const cvObj = { ...cv };
       
-      if (planName === 'Free') {
-        // Free plan: first CV is accessible, next 3 are blurred teasers
-        if (index === 0) {
-          cvObj.hasAccess = true;
-          cvObj.isBlurred = false;
-        } else if (index > 0 && index <= limits.teaserCvs) {
-          cvObj.hasAccess = false;
-          cvObj.isBlurred = true;
-        } else {
-          // Don't show CVs beyond the teaser limit for free plan
-          cvObj.hasAccess = false;
-          cvObj.isBlurred = false;
-          cvObj.hidden = true;
-        }
+      // Access based on maxCvs limit; hide CVs beyond the limit for Free plan
+      if (limits.maxCvs === Infinity || index < limits.maxCvs) {
+        cvObj.hasAccess = true;
+        cvObj.isBlurred = false;
+      } else if (planName === 'Free') {
+        // For Free plan, don't even show CVs beyond the limit
+        cvObj.hasAccess = false;
+        cvObj.isBlurred = false;
+        cvObj.hidden = true;
       } else {
-        // Paid plans: access based on maxCvs limit
-        if (limits.maxCvs === Infinity || index < limits.maxCvs) {
-          cvObj.hasAccess = true;
-          cvObj.isBlurred = false;
-        } else {
-          cvObj.hasAccess = false;
-          cvObj.isBlurred = true;
-        }
+        // Paid plans: show but blur CVs beyond the limit
+        cvObj.hasAccess = false;
+        cvObj.isBlurred = true;
       }
       
       return cvObj;
@@ -594,7 +584,7 @@ const checkCvAccessHelper = async (userId, cvId) => {
     const user = await User.findById(userId).select('plan');
     
     const planLimits = {
-      'Free': { maxCvs: 1 },
+      'Free': { maxCvs: 5 },
       'Starter': { maxCvs: 10 },
       'Professional': { maxCvs: 50 },
       'Enterprise': { maxCvs: Infinity }
@@ -614,11 +604,10 @@ const checkCvAccessHelper = async (userId, cvId) => {
     
     const cvIndex = allCvs.findIndex(c => c._id.toString() === cvId);
 
-    if (planName === 'Free') {
-      return cvIndex === 0; // Only first CV accessible
-    } else {
-      return limits.maxCvs === Infinity || cvIndex < limits.maxCvs;
-    }
+    if (cvIndex === -1) return false;
+
+    // All plans: allow access while within maxCvs limit
+    return limits.maxCvs === Infinity || cvIndex < limits.maxCvs;
   } catch (error) {
     console.error('Check CV access helper error:', error);
     return false;

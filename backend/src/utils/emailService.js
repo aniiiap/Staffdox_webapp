@@ -1093,5 +1093,6 @@ module.exports = {
   sendContactEmail,
   sendContactConfirmation,
   sendSalesEnquiryThankYou,
-  createTransporter
+  createTransporter,
+  getJobNotificationTemplate
 };

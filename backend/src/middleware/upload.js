@@ -17,8 +17,12 @@ const storage = new CloudinaryStorage({
     const ext = sanitizedOriginal.split('.').pop().toLowerCase();
     const resourceType = ext === 'pdf' ? 'raw' : 'raw'; // PDFs and docs should be 'raw' type
     
+    // Check if this is a job application (by checking the route)
+    const isJobApplication = req.path && req.path.includes('/apply');
+    const folder = isJobApplication ? 'staffdox/job-applications' : 'staffdox/resumes';
+    
     return {
-      folder: 'staffdox/resumes', // Organize files in Cloudinary
+      folder: folder, // Organize files in Cloudinary - separate folder for job applications
       public_id: `resume-${userId}-${uniqueSuffix}`,
       resource_type: resourceType, // Use 'raw' for PDFs and documents
       allowed_formats: ['pdf', 'doc', 'docx'], // Only allow these formats

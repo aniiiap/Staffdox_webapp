@@ -147,7 +147,7 @@ export default function Dashboard() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
       {me ? (
               <>
-                {me.role !== 'admin' && (
+                {me.role === 'user' && (
                   <Link
                     to="/jobs"
                     className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"

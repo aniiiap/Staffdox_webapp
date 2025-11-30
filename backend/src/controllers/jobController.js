@@ -2,7 +2,11 @@ const Job = require('../models/Job');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const { createJobNotification } = require('./notificationController');
-const { sendJobNotificationToSubscribers } = require('../utils/emailService');
+const {
+  sendJobNotificationToSubscribers,
+  createTransporter,
+  getJobNotificationTemplate
+} = require('../utils/emailService');
 
 // Get all jobs with filtering and pagination
 const getJobs = async (req, res) => {
@@ -237,20 +241,30 @@ const applyForJob = async (req, res) => {
 
     // Check if resume file was uploaded
     let resumeToUse = null;
+    let resumeUrl = null;
+    let resumePublicId = null;
+    
     if (req.file) {
-      // Use the uploaded file path
-      resumeToUse = req.file.filename;
+      // Extract Cloudinary URL and public_id from multer-storage-cloudinary
+      resumeUrl = req.file.path || req.file.url || req.file.secure_url;
+      resumePublicId = req.file.public_id || req.file.filename;
+      resumeToUse = req.file.filename || req.file.public_id; // Keep for backward compatibility
     } else {
       // Fallback to user's profile resume
       const applyingUser = await User.findById(userId);
       resumeToUse = applyingUser?.resume;
+      // If user's resume is a Cloudinary URL, use it
+      if (applyingUser?.resume && applyingUser.resume.startsWith('http')) {
+        resumeUrl = applyingUser.resume;
+      }
     }
 
-    if (!resumeToUse) {
+    if (!resumeToUse && !resumeUrl) {
       return res.status(400).json({ message: 'Resume is required to apply. Please upload your resume.' });
     }
 
-    const job = await Job.findById(jobId);
+    const job = await Job.findById(jobId)
+      .populate('postedBy', 'firstName lastName email company currentCompany role');
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -264,25 +278,102 @@ const applyForJob = async (req, res) => {
       return res.status(400).json({ message: 'You have already applied for this job' });
     }
 
-    // Add application to job
+    // Add application to job with Cloudinary URL and public_id
     job.applications.push({
       user: userId,
       coverLetter,
-      resume: resumeToUse,
+      resume: resumeToUse, // Keep for backward compatibility
+      resumeUrl: resumeUrl, // Cloudinary URL
+      resumePublicId: resumePublicId, // Cloudinary public_id
       status: 'Applied'
     });
 
     await job.save();
 
     // Add job to user's applied jobs
-    await User.findByIdAndUpdate(userId, {
+    const updatedUser = await User.findByIdAndUpdate(userId, {
       $push: {
         appliedJobs: {
           job: jobId,
           status: 'Applied'
         }
       }
-    });
+    }, { new: true });
+
+    // Create notification for job poster (admin or recruiter)
+    try {
+      const applicantName = `${updatedUser?.firstName || ''} ${updatedUser?.lastName || ''}`.trim() || updatedUser?.email || 'A candidate';
+      const jobPosterId = job.postedBy._id || job.postedBy;
+      
+      // Create notification for the job poster
+      await Notification.create({
+        user: jobPosterId,
+        job: jobId,
+        type: 'new_application',
+        title: 'New Job Application',
+        message: `${applicantName} has applied for your job posting "${job.title}" at ${job.company}.`
+      });
+    } catch (notifyErr) {
+      console.error('Failed to create application notification:', notifyErr);
+      // Don't fail the application because of notification issues
+    }
+
+    // Send email notification to employer/recruiter if email service is configured
+    try {
+      if (process.env.RESEND_API_KEY && job.postedBy?.email) {
+        const transporter = createTransporter();
+
+        const applicantName = `${updatedUser?.firstName || ''} ${updatedUser?.lastName || ''}`.trim() || updatedUser?.email || 'A candidate';
+        const employerEmail = job.postedBy.email;
+
+        const subject = `New application for ${job.title} at ${job.company}`;
+
+        const jobLink = `${process.env.CLIENT_URL || 'http://localhost:3000'}/jobs/${job._id}`;
+
+        const html = `
+          <h2>New Job Application Received</h2>
+          <p>Hello ${job.postedBy.firstName || 'Recruiter'},</p>
+          <p>${applicantName} has applied for your job posting:</p>
+          <ul>
+            <li><strong>Job Title:</strong> ${job.title}</li>
+            <li><strong>Company:</strong> ${job.company}</li>
+            <li><strong>Location:</strong> ${job.location || 'Not specified'}</li>
+          </ul>
+          <p><strong>Cover Letter:</strong></p>
+          <p>${coverLetter.replace(/\n/g, '<br/>')}</p>
+          <p>You can view the full application and resume in your recruiter dashboard.</p>
+          <p>
+            <a href="${jobLink}" target="_blank" style="display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">
+              View Job & Applications
+            </a>
+          </p>
+          <p style="margin-top:24px;font-size:12px;color:#6b7280;">This is an automated message from Staffdox.</p>
+        `;
+
+        const text = `New Job Application Received
+
+${applicantName} has applied for your job posting:
+- Job Title: ${job.title}
+- Company: ${job.company}
+- Location: ${job.location || 'Not specified'}
+
+Cover Letter:
+${coverLetter}
+
+View job and applications: ${jobLink}
+`;
+
+        await transporter.sendMail({
+          to: employerEmail,
+          subject,
+          html,
+          text
+        });
+      }
+    } catch (emailError) {
+      console.error('Failed to send employer application email:', emailError);
+      // Do not fail the application because of email issues
+    }
 
     res.json({ message: 'Application submitted successfully' });
   } catch (error) {

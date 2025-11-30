@@ -18,6 +18,8 @@ export default function RecruiterDashboard() {
   const [showPaymentGateway, setShowPaymentGateway] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
   const [showUserTypeModal, setShowUserTypeModal] = useState(false);
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [verifiedMobile, setVerifiedMobile] = useState(null);
   const [paymentUserData, setPaymentUserData] = useState(null);
@@ -26,7 +28,8 @@ export default function RecruiterDashboard() {
   const [jobForm, setJobForm] = useState({
     title: '',
     company: '',
-    location: '',
+    state: '',
+    city: '',
     description: '',
     requirements: [''],
     responsibilities: [''],
@@ -46,6 +49,47 @@ export default function RecruiterDashboard() {
   const employmentTypes = [
     'Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'
   ];
+
+  const indianStates = [
+    { name: 'Andhra Pradesh', cities: ['Visakhapatnam', 'Vijayawada', 'Guntur'] },
+    { name: 'Arunachal Pradesh', cities: ['Itanagar', 'Tawang'] },
+    { name: 'Assam', cities: ['Guwahati', 'Dibrugarh', 'Silchar'] },
+    { name: 'Bihar', cities: ['Patna', 'Gaya', 'Bhagalpur'] },
+    { name: 'Chhattisgarh', cities: ['Raipur', 'Bhilai', 'Bilaspur'] },
+    { name: 'Goa', cities: ['Panaji', 'Margao'] },
+    { name: 'Gujarat', cities: ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'] },
+    { name: 'Haryana', cities: ['Gurugram', 'Faridabad', 'Panipat'] },
+    { name: 'Himachal Pradesh', cities: ['Shimla', 'Dharamshala'] },
+    { name: 'Jharkhand', cities: ['Ranchi', 'Jamshedpur', 'Dhanbad'] },
+    { name: 'Karnataka', cities: ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubballi'] },
+    { name: 'Kerala', cities: ['Kochi', 'Thiruvananthapuram', 'Kozhikode'] },
+    { name: 'Madhya Pradesh', cities: ['Bhopal', 'Indore', 'Gwalior', 'Jabalpur'] },
+    { name: 'Maharashtra', cities: ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane'] },
+    { name: 'Manipur', cities: ['Imphal'] },
+    { name: 'Meghalaya', cities: ['Shillong'] },
+    { name: 'Mizoram', cities: ['Aizawl'] },
+    { name: 'Nagaland', cities: ['Kohima', 'Dimapur'] },
+    { name: 'Odisha', cities: ['Bhubaneswar', 'Cuttack', 'Rourkela'] },
+    { name: 'Punjab', cities: ['Chandigarh', 'Ludhiana', 'Amritsar', 'Jalandhar'] },
+    { name: 'Rajasthan', cities: ['Jaipur', 'Udaipur', 'Jodhpur', 'Kota', 'Bhilwara'] },
+    { name: 'Sikkim', cities: ['Gangtok'] },
+    { name: 'Tamil Nadu', cities: ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli'] },
+    { name: 'Telangana', cities: ['Hyderabad', 'Warangal', 'Karimnagar'] },
+    { name: 'Tripura', cities: ['Agartala'] },
+    { name: 'Uttar Pradesh', cities: ['Noida', 'Lucknow', 'Ghaziabad', 'Kanpur', 'Varanasi'] },
+    { name: 'Uttarakhand', cities: ['Dehradun', 'Haridwar'] },
+    { name: 'West Bengal', cities: ['Kolkata', 'Howrah', 'Durgapur'] },
+    // Union Territories
+    { name: 'Andaman and Nicobar Islands', cities: ['Port Blair'] },
+    { name: 'Chandigarh (UT)', cities: ['Chandigarh'] },
+    { name: 'Dadra and Nagar Haveli and Daman and Diu', cities: ['Daman', 'Diu', 'Silvassa'] },
+    { name: 'Delhi', cities: ['New Delhi', 'Dwarka', 'Rohini'] },
+    { name: 'Jammu and Kashmir', cities: ['Jammu', 'Srinagar'] },
+    { name: 'Ladakh', cities: ['Leh', 'Kargil'] },
+    { name: 'Lakshadweep', cities: ['Kavaratti'] },
+    { name: 'Puducherry', cities: ['Puducherry', 'Karaikal'] }
+  ];
+  const [customCity, setCustomCity] = useState('');
 
   // Table state (search + pagination)
   const [jobSearch, setJobSearch] = useState('');
@@ -149,7 +193,10 @@ export default function RecruiterDashboard() {
       }
     }
 
-    if (!jobForm.title.trim() || !jobForm.company.trim() || !jobForm.location.trim() || !jobForm.description.trim() || !jobForm.category) {
+    const effectiveCity =
+      jobForm.city === '__other__' ? customCity.trim() : jobForm.city.trim();
+
+    if (!jobForm.title.trim() || !jobForm.company.trim() || !jobForm.state || !effectiveCity || !jobForm.description.trim() || !jobForm.category) {
       toast.error('Please fill required fields');
       return;
     }
@@ -158,7 +205,7 @@ export default function RecruiterDashboard() {
       const payload = {
         title: jobForm.title.trim(),
         company: jobForm.company.trim(),
-        location: jobForm.location.trim(),
+        location: `${effectiveCity}, ${jobForm.state}`.trim(),
         description: jobForm.description.trim(),
         category: jobForm.category,
         industry: 'Other',
@@ -192,10 +239,11 @@ export default function RecruiterDashboard() {
       setShowCreateModal(false);
       setEditingJob(null);
       setJobForm({
-        title: '', company: '', location: '', description: '',
+        title: '', company: '', state: '', city: '', description: '',
         requirements: [''], responsibilities: [''], salary: { min: '', max: '', currency: 'INR' },
         employmentType: 'Full-time', experience: { min: 0, max: 10 }, skills: [''], category: '', isRemote: false, benefits: [''], deadline: ''
       });
+      setCustomCity('');
       
       // Refresh user data to get updated plan info
       const userResponse = await API.get('/api/user/me');
@@ -218,35 +266,54 @@ export default function RecruiterDashboard() {
   const pagedJobs = filteredJobs.slice((jobsPage - 1) * pageSize, jobsPage * pageSize);
 
   const allApps = useMemo(() => jobs.flatMap(job => (job.applications || []).map(app => ({ job, app }))), [jobs]);
+  const isFreePlan = me?.plan?.name === 'Free';
+  const FREE_LIMIT = 5;
   const appsTotalPages = Math.max(1, Math.ceil(allApps.length / pageSize));
   const pagedApps = allApps.slice((appsPage - 1) * pageSize, appsPage * pageSize);
+  const appsForDisplay = isFreePlan ? allApps.slice(0, FREE_LIMIT) : pagedApps;
 
   const appsWithResumes = useMemo(() => allApps.filter(({ app }) => !!(app.resume || app.user?.resume)), [allApps]);
   const resumesTotalPages = Math.max(1, Math.ceil(appsWithResumes.length / pageSize));
   const pagedResumes = appsWithResumes.slice((resumesPage - 1) * pageSize, resumesPage * pageSize);
+  const resumesForDisplay = isFreePlan ? appsWithResumes.slice(0, FREE_LIMIT) : pagedResumes;
 
-  const viewResume = (app) => {
-    const userId = app?.user?._id;
-    if (!userId) {
+  const viewResume = async (job, app) => {
+    if (!app?.resume && !app?.resumeUrl && !app?.user?.resume) {
       toast.error('No resume available');
       return;
     }
-    API.get(`/api/user/recruiter/view-resume/${userId}`, { responseType: 'blob' })
-      .then((response) => {
-        const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/pdf' });
-        const blobUrl = window.URL.createObjectURL(blob);
-        window.open(blobUrl, '_blank', 'noopener,noreferrer');
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 30000);
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error('Failed to view resume');
-      });
+
+    try {
+      // Use the new endpoint with jobId and applicationId
+      const response = await API.get(
+        `/api/jobs/applications/${job._id}/${app._id}/view-resume`,
+        { responseType: 'blob' }
+      );
+      
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/pdf' });
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Set resume URL for modal and show modal
+      setResumeUrl(blobUrl);
+      setShowResumeModal(true);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to view resume');
+    }
   };
 
-  const downloadResume = async (userId) => {
+  const downloadResume = async (job, app) => {
+    if (!app?.resume && !app?.resumeUrl && !app?.user?.resume) {
+      toast.error('No resume available');
+      return;
+    }
+
     try {
-      const response = await API.get(`/api/user/recruiter/download-resume/${userId}`, { responseType: 'blob' });
+      const response = await API.get(
+        `/api/jobs/applications/${job._id}/${app._id}/download-resume`,
+        { responseType: 'blob' }
+      );
+      
       const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = blobUrl;
@@ -413,9 +480,9 @@ export default function RecruiterDashboard() {
       description: 'Try our platform with a free job posting',
       features: [
         'Post 1 job',
-        'Up to 100 database limit',
+        'Up to 5 database limit',
         'Valid for 7 days',
-        'No resume viewing'
+        'View up to 5 applicants & resumes'
       ],
       popular: false,
       maxJobs: 1,
@@ -846,10 +913,10 @@ export default function RecruiterDashboard() {
 
       {activeTab === 'applicants' && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {me?.plan?.name === 'Free' && (
+          {isFreePlan && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 m-6">
               <p className="text-yellow-800 text-sm">
-                <strong>Free Plan:</strong> You can see application count but not applicant details. Upgrade to view full applicant information.
+                <strong>Free Plan:</strong> You can view full details for up to {FREE_LIMIT} applicants. Upgrade to see more.
               </p>
             </div>
           )}
@@ -858,78 +925,71 @@ export default function RecruiterDashboard() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applications</th>
-                  {me?.plan?.name !== 'Free' && (
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    </>
-                  )}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {me?.plan?.name === 'Free' ? (
-                  filteredJobs.length === 0 ? (
-                    <tr><td colSpan={3} className="px-6 py-10 text-center text-gray-500">No jobs</td></tr>
-                  ) : (
-                  // Free plan: Show only job and application count (paginated)
-                  filteredJobs.slice((appsPage - 1) * pageSize, appsPage * pageSize).map((job) => {
-                    const appCount = (job.applications || []).length;
-                    return (
-                      <tr key={job._id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.title}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{appCount} {appCount === 1 ? 'application' : 'applications'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                          <Link to={`/jobs/${job._id}`} className="inline-flex items-center px-3 py-1.5 border rounded-md text-gray-700 hover:bg-gray-50"><Eye className="w-4 h-4 mr-1.5"/> View Job</Link>
-                        </td>
-                      </tr>
-                    );
-                  })
-                  )
-                ) : pagedApps.length === 0 ? (
-                  <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-500">No applicants</td></tr>
-                ) : (
-                  // Paid plans: Show full applicant details
-                  pagedApps.map(({ job, app }) => (
+                {appsForDisplay.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-10 text-center text-gray-500">
+                      No applicants
+                    </td>
+                  </tr>
+                )}
+                {appsForDisplay.length > 0 &&
+                  appsForDisplay.map(({ job, app }) => (
                     <tr key={app._id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{job.title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{app.user?.firstName || 'Candidate'}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {app.user?.firstName || 'Candidate'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         <select
                           value={app.status}
-                          onChange={(e)=>updateApplicationStatus(app._id, job._id, e.target.value)}
+                          onChange={(e) => updateApplicationStatus(app._id, job._id, e.target.value)}
                           className="px-2 py-1 border rounded-md text-sm"
                         >
-                          {['Under Review','Shortlisted','Rejected','Selected'].map(s => (
-                            <option key={s} value={s}>{s}</option>
+                          {['Under Review', 'Shortlisted', 'Rejected', 'Selected'].map((s) => (
+                            <option key={s} value={s}>
+                              {s}
+                            </option>
                           ))}
                         </select>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : '-'}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                        <Link to={`/jobs/${job._id}`} className="inline-flex items-center px-3 py-1.5 border rounded-md text-gray-700 hover:bg-gray-50"><Eye className="w-4 h-4 mr-1.5"/> View Job</Link>
+                        <Link
+                          to={`/jobs/${job._id}`}
+                          className="inline-flex items-center px-3 py-1.5 border rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                          <Eye className="w-4 h-4 mr-1.5" /> View Job
+                        </Link>
                       </td>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
           </div>
           <div className="px-6 py-3 bg-gray-50 flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Page {appsPage} of {me?.plan?.name === 'Free' ? Math.max(1, Math.ceil(filteredJobs.length / pageSize)) : appsTotalPages}
+              Page {appsPage} of {isFreePlan ? 1 : appsTotalPages}
             </div>
             <div className="space-x-2">
               <button 
                 onClick={()=>setAppsPage(p=>Math.max(1,p-1))} 
-                disabled={appsPage===1} 
+                disabled={appsPage===1 || isFreePlan} 
                 className="px-3 py-1.5 border rounded-md text-sm disabled:opacity-50"
               >
                 <ChevronLeft className="w-4 h-4 inline"/> Prev
               </button>
               <button 
-                onClick={()=>setAppsPage(p=>Math.min(me?.plan?.name === 'Free' ? Math.max(1, Math.ceil(filteredJobs.length / pageSize)) : appsTotalPages, p+1))} 
-                disabled={appsPage===(me?.plan?.name === 'Free' ? Math.max(1, Math.ceil(filteredJobs.length / pageSize)) : appsTotalPages)} 
+                onClick={()=>setAppsPage(p=>Math.min(isFreePlan ? 1 : appsTotalPages, p+1))} 
+                disabled={appsPage>=(isFreePlan ? 1 : appsTotalPages) || isFreePlan} 
                 className="px-3 py-1.5 border rounded-md text-sm disabled:opacity-50"
               >
                 Next <ChevronRight className="w-4 h-4 inline"/>
@@ -941,37 +1001,20 @@ export default function RecruiterDashboard() {
 
       {activeTab === 'resumes' && (
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {me?.plan?.name === 'Free' && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 m-6">
-              <p className="text-yellow-800 text-sm">
-                <strong>Free Plan:</strong> Resume viewing is not available. Upgrade to view and download candidate resumes.
-              </p>
-            </div>
-          )}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
-                  {me?.plan?.name !== 'Free' && (
-                    <>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resume</th>
-                    </>
-                  )}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resume</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {me?.plan?.name === 'Free' ? (
-                  <tr>
-                    <td colSpan={1} className="px-6 py-10 text-center text-gray-500">
-                      Resume viewing is not available on the Free plan. Upgrade to view candidate resumes.
-                    </td>
-                  </tr>
-                ) : pagedResumes.length === 0 ? (
+                {resumesForDisplay.length === 0 ? (
                   <tr><td colSpan={3} className="px-6 py-10 text-center text-gray-500">No resumes</td></tr>
                 ) : (
-                  pagedResumes.map(({ job, app }) => {
+                  resumesForDisplay.map(({ job, app }) => {
                     const urlExists = !!(app.resume || app.user?.resume);
                     return (
                       <tr key={`${job._id}-${app._id}`}>
@@ -980,16 +1023,16 @@ export default function RecruiterDashboard() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => viewResume(app)}
+                              onClick={() => viewResume(job, app)}
                               className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
                               disabled={!urlExists}
                             >
                               <Eye className="w-4 h-4 mr-1.5" /> View
                             </button>
                             <button
-                              onClick={() => downloadResume(app.user?._id)}
+                              onClick={() => downloadResume(job, app)}
                               className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
-                              disabled={!app.user?._id}
+                              disabled={!urlExists}
                             >
                               <Download className="w-4 h-4 mr-1.5" /> Download
                             </button>
@@ -1612,8 +1655,65 @@ export default function RecruiterDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
-                    <input value={jobForm.location} onChange={(e)=>setJobForm({...jobForm, location: e.target.value})} className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <select
+                            value={jobForm.state}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setJobForm(prev => ({
+                                ...prev,
+                                state: value,
+                                city: '' // reset city when state changes
+                              }));
+                              setCustomCity('');
+                            }}
+                            required
+                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                          >
+                            <option value="">Select State</option>
+                            {indianStates.map(state => (
+                              <option key={state.name} value={state.name}>
+                                {state.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <select
+                            value={jobForm.city}
+                            onChange={(e) => setJobForm(prev => ({ ...prev, city: e.target.value }))}
+                            required
+                            disabled={!jobForm.state}
+                            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                          >
+                            <option value="">
+                              {jobForm.state ? 'Select City' : 'Select state first'}
+                            </option>
+                            {jobForm.state &&
+                              indianStates
+                                .find(s => s.name === jobForm.state)
+                                ?.cities.map(city => (
+                                  <option key={city} value={city}>
+                                    {city}
+                                  </option>
+                                ))}
+                            <option value="__other__">Other / Not listed</option>
+                          </select>
+
+                          {jobForm.city === '__other__' && (
+                            <input
+                              type="text"
+                              value={customCity}
+                              onChange={(e) => setCustomCity(e.target.value)}
+                              placeholder="Enter city name"
+                              className="mt-2 w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            />
+                          )}
+                        </div>
+                      </div>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
@@ -1663,11 +1763,11 @@ export default function RecruiterDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Salary Min</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Salary Min (monthly)</label>
                     <input type="number" value={jobForm.salary.min} onChange={(e)=>setJobForm({...jobForm, salary: { ...jobForm.salary, min: e.target.value }})} className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Salary Max</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Salary Max (monthly)</label>
                     <input type="number" value={jobForm.salary.max} onChange={(e)=>setJobForm({...jobForm, salary: { ...jobForm.salary, max: e.target.value }})} className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                   <div>
@@ -1875,6 +1975,36 @@ export default function RecruiterDashboard() {
           }
         }}
         />
+      )}
+
+      {/* Resume View Modal */}
+      {showResumeModal && resumeUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+          <div className="bg-white rounded-lg shadow-xl w-full h-full max-w-6xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-xl font-semibold text-gray-900">Resume Preview</h2>
+              <button
+                onClick={() => {
+                  setShowResumeModal(false);
+                  if (resumeUrl) {
+                    window.URL.revokeObjectURL(resumeUrl);
+                    setResumeUrl(null);
+                  }
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <iframe
+                src={resumeUrl}
+                className="w-full h-full border-0"
+                title="Resume Preview"
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

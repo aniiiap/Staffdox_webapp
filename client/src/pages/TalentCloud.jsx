@@ -18,27 +18,6 @@ export default function TalentCloud() {
 
   const services = [
     {
-      id: 'payment-management',
-      title: 'Payment Management',
-      description: 'Streamline and automate your employee payment processes with our comprehensive payment management solution.',
-      icon: CreditCard,
-      color: 'blue'
-    },
-    {
-      id: 'third-party-payroll',
-      title: 'Third Party Payroll',
-      description: 'Outsource your payroll operations to experts and focus on your core business activities.',
-      icon: Users,
-      color: 'green'
-    },
-    {
-      id: 'compliance-management',
-      title: 'Compliance Management',
-      description: 'Stay compliant with labor laws and regulations with our automated compliance management system.',
-      icon: Shield,
-      color: 'purple'
-    },
-    {
       id: 'assisted-hiring',
       title: 'Assisted Hiring',
       description: 'Get expert assistance in finding and hiring the right talent for your organization.',
@@ -51,6 +30,27 @@ export default function TalentCloud() {
       description: 'Efficiently screen and evaluate candidates with our advanced screening tools and assessments.',
       icon: Search,
       color: 'indigo'
+    },
+    {
+      id: 'compliance-management',
+      title: 'Compliance Management',
+      description: 'Stay compliant with labor laws and regulations with our automated compliance management system.',
+      icon: Shield,
+      color: 'purple'
+    },
+    {
+      id: 'payroll-management',
+      title: 'Payroll Management',
+      description: 'Streamline and automate your employee payment processes with our comprehensive payment management solution.',
+      icon: CreditCard,
+      color: 'blue'
+    },
+    {
+      id: 'third-party-payroll',
+      title: 'Third Party Payroll',
+      description: 'Outsource your payroll operations to experts and focus on your core business activities.',
+      icon: Users,
+      color: 'green'
     }
   ];
 

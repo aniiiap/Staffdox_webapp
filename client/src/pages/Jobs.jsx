@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import API from '../utils/api';
-import { 
-  Search, 
-  MapPin, 
-  Briefcase, 
-  Clock, 
-  DollarSign,
+import {
+  Search,
+  MapPin,
+  Briefcase,
+  Clock,
+  IndianRupee,
   Star,
   Building,
   Users,
@@ -63,11 +63,7 @@ export default function Jobs() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [searchParams]);
 
-  useEffect(() => {
-    fetchJobs();
-  }, [filters, pagination.page]);
-
-  const fetchJobs = async () => {
+  const fetchJobs = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -103,7 +99,11 @@ export default function Jobs() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, pagination.page]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -396,7 +396,7 @@ export default function Jobs() {
 
                             {job.salary && (job.salary.min || job.salary.max) && (
                               <div className="flex items-center">
-                                <DollarSign className="w-4 h-4 mr-1" />
+                                <IndianRupee className="w-4 h-4 mr-1" />
                                 <span>{formatSalary(job.salary.min, job.salary.max, job.salary.currency)}</span>
                               </div>
                             )}

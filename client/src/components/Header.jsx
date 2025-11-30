@@ -273,7 +273,19 @@ const Header = memo(function Header() {
       markAsRead(notification._id);
     }
     setShowNotificationDropdown(false);
-    if (notification.job && notification.job._id) {
+    
+    // Handle new application notifications - redirect to applications/applicants page
+    if (notification.type === 'new_application' && notification.job && notification.job._id) {
+      if (user?.role === 'admin') {
+        navigate('/admin?tab=applications');
+      } else if (user?.role === 'recruiter') {
+        navigate('/recruiter?tab=applicants');
+      } else {
+        // Fallback to job details if role is not admin or recruiter
+        navigate(`/jobs/${notification.job._id}`);
+      }
+    } else if (notification.job && notification.job._id) {
+      // For other notification types, redirect to job details
       navigate(`/jobs/${notification.job._id}`);
     }
   };
@@ -354,8 +366,12 @@ const Header = memo(function Header() {
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
-    { path: '/jobs', label: 'Jobs', icon: Briefcase },
   ];
+
+  // Show Jobs in navigation for candidates and guests, but hide for recruiters
+  if (!user || (user && user.role !== 'recruiter')) {
+    navItems.push({ path: '/jobs', label: 'Jobs', icon: Briefcase });
+  }
 
   // Add "Your CV" for logged-in users (not admins)
   if (user && user.role === 'user') {

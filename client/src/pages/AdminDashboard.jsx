@@ -83,6 +83,8 @@ export default function AdminDashboard() {
     reason: '',
     description: ''
   });
+  const [showResumeModal, setShowResumeModal] = useState(false);
+  const [resumeUrl, setResumeUrl] = useState(null);
   const [folderForm, setFolderForm] = useState({
     name: '',
     description: '',
@@ -112,10 +114,51 @@ export default function AdminDashboard() {
     'Full-time', 'Part-time', 'Contract', 'Internship', 'Remote'
   ];
 
+  const indianStates = [
+    { name: 'Andhra Pradesh', cities: ['Visakhapatnam', 'Vijayawada', 'Guntur'] },
+    { name: 'Arunachal Pradesh', cities: ['Itanagar', 'Tawang'] },
+    { name: 'Assam', cities: ['Guwahati', 'Dibrugarh', 'Silchar'] },
+    { name: 'Bihar', cities: ['Patna', 'Gaya', 'Bhagalpur'] },
+    { name: 'Chhattisgarh', cities: ['Raipur', 'Bhilai', 'Bilaspur'] },
+    { name: 'Goa', cities: ['Panaji', 'Margao'] },
+    { name: 'Gujarat', cities: ['Ahmedabad', 'Surat', 'Vadodara', 'Rajkot'] },
+    { name: 'Haryana', cities: ['Gurugram', 'Faridabad', 'Panipat'] },
+    { name: 'Himachal Pradesh', cities: ['Shimla', 'Dharamshala'] },
+    { name: 'Jharkhand', cities: ['Ranchi', 'Jamshedpur', 'Dhanbad'] },
+    { name: 'Karnataka', cities: ['Bengaluru', 'Mysuru', 'Mangaluru', 'Hubballi'] },
+    { name: 'Kerala', cities: ['Kochi', 'Thiruvananthapuram', 'Kozhikode'] },
+    { name: 'Madhya Pradesh', cities: ['Bhopal', 'Indore', 'Gwalior', 'Jabalpur'] },
+    { name: 'Maharashtra', cities: ['Mumbai', 'Pune', 'Nagpur', 'Nashik', 'Thane'] },
+    { name: 'Manipur', cities: ['Imphal'] },
+    { name: 'Meghalaya', cities: ['Shillong'] },
+    { name: 'Mizoram', cities: ['Aizawl'] },
+    { name: 'Nagaland', cities: ['Kohima', 'Dimapur'] },
+    { name: 'Odisha', cities: ['Bhubaneswar', 'Cuttack', 'Rourkela'] },
+    { name: 'Punjab', cities: ['Chandigarh', 'Ludhiana', 'Amritsar', 'Jalandhar'] },
+    { name: 'Rajasthan', cities: ['Jaipur', 'Udaipur', 'Jodhpur', 'Kota','Bhilwara'] },
+    { name: 'Sikkim', cities: ['Gangtok'] },
+    { name: 'Tamil Nadu', cities: ['Chennai', 'Coimbatore', 'Madurai', 'Tiruchirappalli'] },
+    { name: 'Telangana', cities: ['Hyderabad', 'Warangal', 'Karimnagar'] },
+    { name: 'Tripura', cities: ['Agartala'] },
+    { name: 'Uttar Pradesh', cities: ['Noida', 'Lucknow', 'Ghaziabad', 'Kanpur', 'Varanasi'] },
+    { name: 'Uttarakhand', cities: ['Dehradun', 'Haridwar'] },
+    { name: 'West Bengal', cities: ['Kolkata', 'Howrah', 'Durgapur'] },
+    // Union Territories
+    { name: 'Andaman and Nicobar Islands', cities: ['Port Blair'] },
+    { name: 'Chandigarh (UT)', cities: ['Chandigarh'] },
+    { name: 'Dadra and Nagar Haveli and Daman and Diu', cities: ['Daman', 'Diu', 'Silvassa'] },
+    { name: 'Delhi', cities: ['New Delhi', 'Dwarka', 'Rohini'] },
+    { name: 'Jammu and Kashmir', cities: ['Jammu', 'Srinagar'] },
+    { name: 'Ladakh', cities: ['Leh', 'Kargil'] },
+    { name: 'Lakshadweep', cities: ['Kavaratti'] },
+    { name: 'Puducherry', cities: ['Puducherry', 'Karaikal'] }
+  ];
+
   const [jobForm, setJobForm] = useState({
     title: '',
     company: '',
-    location: '',
+    state: '',
+    city: '',
     description: '',
     requirements: [''],
     responsibilities: [''],
@@ -129,6 +172,7 @@ export default function AdminDashboard() {
     benefits: [''],
     deadline: ''
   });
+  const [customCity, setCustomCity] = useState('');
 
   useEffect(() => {
     fetchStats();
@@ -250,6 +294,9 @@ export default function AdminDashboard() {
     e.preventDefault();
     
     // Basic validation
+    const effectiveCity =
+      jobForm.city === '__other__' ? customCity.trim() : jobForm.city.trim();
+
     if (!jobForm.title.trim()) {
       toast.error('Job title is required');
       return;
@@ -258,8 +305,8 @@ export default function AdminDashboard() {
       toast.error('Company name is required');
       return;
     }
-    if (!jobForm.location.trim()) {
-      toast.error('Location is required');
+    if (!jobForm.state || !effectiveCity) {
+      toast.error('State and city are required');
       return;
     }
     if (!jobForm.description.trim()) {
@@ -275,7 +322,7 @@ export default function AdminDashboard() {
       const jobData = {
         title: jobForm.title.trim(),
         company: jobForm.company.trim(),
-        location: jobForm.location.trim(),
+        location: `${effectiveCity}, ${jobForm.state}`.trim(),
         description: jobForm.description.trim(),
         category: jobForm.category,
         industry: jobForm.industry || 'Other',
@@ -323,7 +370,8 @@ export default function AdminDashboard() {
     setJobForm({
       title: '',
       company: '',
-      location: '',
+      state: '',
+      city: '',
       description: '',
       requirements: [''],
       responsibilities: [''],
@@ -337,12 +385,28 @@ export default function AdminDashboard() {
       benefits: [''],
       deadline: ''
     });
+    setCustomCity('');
   };
 
   const editJob = (job) => {
     setEditingJob(job);
+
+    let state = '';
+    let city = '';
+    if (job.location) {
+      const parts = job.location.split(',').map(p => p.trim());
+      if (parts.length >= 2) {
+        city = parts[0];
+        state = parts[1];
+      } else {
+        city = job.location;
+      }
+    }
+
     setJobForm({
       ...job,
+      state,
+      city,
       salary: {
         min: job.salary?.min || '',
         max: job.salary?.max || '',
@@ -483,6 +547,66 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('View resume error:', error);
       toast.error('Failed to view resume');
+    }
+  };
+
+  // View application resume (from job application)
+  const viewApplicationResume = async (job, application) => {
+    if (!application?.resume && !application?.resumeUrl && !application?.user?.resume) {
+      toast.error('No resume available');
+      return;
+    }
+
+    try {
+      // Use the new endpoint with jobId and applicationId
+      const response = await API.get(
+        `/api/jobs/applications/${job._id}/${application._id}/view-resume`,
+        { responseType: 'blob' }
+      );
+      
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/pdf' });
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Set resume URL for modal and show modal
+      setResumeUrl(blobUrl);
+      setShowResumeModal(true);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to view resume');
+    }
+  };
+
+  // Download application resume (from job application)
+  const downloadApplicationResume = async (job, application) => {
+    if (!application?.resume && !application?.resumeUrl && !application?.user?.resume) {
+      toast.error('No resume available');
+      return;
+    }
+
+    try {
+      const response = await API.get(
+        `/api/jobs/applications/${job._id}/${application._id}/download-resume`,
+        { responseType: 'blob' }
+      );
+      
+      const blobUrl = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'resume.pdf';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+        if (filenameMatch) filename = filenameMatch[1];
+      }
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+      toast.success('Resume downloaded successfully');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to download resume');
     }
   };
 
@@ -2219,16 +2343,67 @@ export default function AdminDashboard() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Location *
+                        State *
                       </label>
-                      <input
-                        type="text"
-                        name="location"
-                        value={jobForm.location}
+                      <select
+                        name="state"
+                        value={jobForm.state}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setJobForm(prev => ({
+                            ...prev,
+                            state: value,
+                            city: '' // reset city when state changes
+                          }));
+                          setCustomCity('');
+                        }}
+                        required
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                      >
+                        <option value="">Select State</option>
+                        {indianStates.map(state => (
+                          <option key={state.name} value={state.name}>
+                            {state.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        City *
+                      </label>
+                      <select
+                        name="city"
+                        value={jobForm.city}
                         onChange={handleInputChange}
                         required
-                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+                        disabled={!jobForm.state}
+                        className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {jobForm.state ? 'Select City' : 'Select state first'}
+                        </option>
+                        {jobForm.state &&
+                          indianStates
+                            .find(s => s.name === jobForm.state)
+                            ?.cities.map(city => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ))}
+                        <option value="__other__">Other / Not listed</option>
+                      </select>
+
+                      {jobForm.city === '__other__' && (
+                        <input
+                          type="text"
+                          value={customCity}
+                          onChange={(e) => setCustomCity(e.target.value)}
+                          placeholder="Enter city name"
+                          className="mt-2 w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        />
+                      )}
                     </div>
 
                     <div>
@@ -2812,17 +2987,29 @@ export default function AdminDashboard() {
                   {/* Resume */}
                   <div className="bg-gray-50 rounded-lg p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Resume</h3>
-                    {selectedApplication.user?.resume ? (
+                    {selectedApplication.resume || selectedApplication.resumeUrl || selectedApplication.user?.resume ? (
                       <div className="flex items-center space-x-4">
                         <FileText className="w-8 h-8 text-green-500" />
-                        <div>
-                          <p className="text-gray-900">Resume available</p>
-                          <button
-                            onClick={() => downloadResume(selectedApplication.user._id)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                          >
-                            Download Resume
-                          </button>
+                        <div className="flex-1">
+                          <p className="text-gray-900 mb-2">
+                            {selectedApplication.resumeUrl || selectedApplication.resume 
+                              ? 'Resume uploaded with application' 
+                              : 'Resume from user profile'}
+                          </p>
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={() => viewApplicationResume(selectedApplication.job, selectedApplication)}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              <Eye className="w-4 h-4 mr-1.5" /> View
+                            </button>
+                            <button
+                              onClick={() => downloadApplicationResume(selectedApplication.job, selectedApplication)}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              <Download className="w-4 h-4 mr-1.5" /> Download
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ) : (
@@ -3301,6 +3488,36 @@ export default function AdminDashboard() {
                     </button>
                   </div>
                 </form>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Resume View Modal */}
+        {showResumeModal && resumeUrl && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+            <div className="bg-white rounded-lg shadow-xl w-full h-full max-w-6xl max-h-[90vh] flex flex-col">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-xl font-semibold text-gray-900">Resume Preview</h2>
+                <button
+                  onClick={() => {
+                    setShowResumeModal(false);
+                    if (resumeUrl) {
+                      window.URL.revokeObjectURL(resumeUrl);
+                      setResumeUrl(null);
+                    }
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <iframe
+                  src={resumeUrl}
+                  className="w-full h-full border-0"
+                  title="Resume Preview"
+                />
               </div>
             </div>
           </div>
