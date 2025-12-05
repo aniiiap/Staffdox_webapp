@@ -179,7 +179,7 @@ export default function RecruiterDashboard() {
     // Enforce plan job limits only when creating a new job
     if (!isEditing) {
       const plans = [
-        { name: 'Free', maxJobs: 1 },
+        { name: 'Free', maxJobs: 2 },
         { name: 'Starter', maxJobs: 5 },
         { name: 'Professional', maxJobs: 20 },
         { name: 'Enterprise', maxJobs: Infinity }
@@ -479,7 +479,7 @@ export default function RecruiterDashboard() {
       period: '',
       description: 'Try our platform with a free job posting',
       features: [
-        'Post 1 job',
+        'Post 2 job',
         'Up to 5 database limit',
         'Valid for 7 days',
         'View up to 5 applicants & resumes'
@@ -612,7 +612,7 @@ export default function RecruiterDashboard() {
                         plan: {
                           name: 'Free',
                           startDate: new Date(),
-                          endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+                          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days (1 month) from now
                           isActive: true
                         }
                       });
@@ -1076,7 +1076,7 @@ export default function RecruiterDashboard() {
                     cvPlanInfo.planName === 'Free' ? 'text-yellow-800' : 'text-blue-800'
                   }`}>
                     {cvPlanInfo.planName === 'Free' 
-                      ? `You can access ${cvPlanInfo.accessibleCount} CV(s) and preview ${Math.min(3, cvPlanInfo.totalCount - cvPlanInfo.accessibleCount)} more blurred CVs. Upgrade to access all CVs.`
+                      ? `You can access ${cvPlanInfo.accessibleCount} CV(s). Upgrade to access all CVs.`
                       : cvPlanInfo.maxCvs === Infinity
                       ? `You can access all ${cvPlanInfo.totalCount} CV(s).`
                       : `You can access ${cvPlanInfo.accessibleCount} of ${cvPlanInfo.totalCount} CV(s).`
@@ -1545,7 +1545,7 @@ export default function RecruiterDashboard() {
                                 plan: {
                                   name: 'Free',
                                   startDate: new Date(),
-                                  endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                                  endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days (1 month)
                                   isActive: true
                                 }
                               });

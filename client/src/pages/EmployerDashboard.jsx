@@ -23,7 +23,7 @@ export default function EmployerDashboard() {
       period: '',
       description: 'Try our platform with a free job posting',
       features: [
-        'Post 1 job',
+        'Post 2 job',
         'Up to 5 database limit',
         'Valid for 7 days',
         'View up to 5 applicants & resumes'

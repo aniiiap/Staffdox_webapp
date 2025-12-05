@@ -527,7 +527,7 @@ const getCvsForRecruiter = async (req, res) => {
     
     // Define plan limits for CV access
     const planLimits = {
-      'Free': { maxCvs: 5, teaserCvs: 0 }, // up to 5 CVs fully accessible
+      'Free': { maxCvs: Infinity, teaserCvs: 0 }, // unlimited CVs accessible
       'Starter': { maxCvs: 10, teaserCvs: 0 },
       'Professional': { maxCvs: 50, teaserCvs: 0 },
       'Enterprise': { maxCvs: Infinity, teaserCvs: 0 }
@@ -584,7 +584,7 @@ const checkCvAccessHelper = async (userId, cvId) => {
     const user = await User.findById(userId).select('plan');
     
     const planLimits = {
-      'Free': { maxCvs: 5 },
+      'Free': { maxCvs: Infinity },
       'Starter': { maxCvs: 10 },
       'Professional': { maxCvs: 50 },
       'Enterprise': { maxCvs: Infinity }
