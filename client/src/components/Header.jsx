@@ -391,19 +391,19 @@ const Header = memo(function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-center min-w-0">
             <div className="flex items-center">
               <img 
                 src="/icons/staffdox_logo.png" 
                 alt="Staffdox Logo" 
-                className="h-10 w-auto mr-0"
+                className="h-8 sm:h-10 w-auto mr-1 sm:mr-2 flex-shrink-0"
               />
-              <span className="text-2xl font-bold text-blue-600">Staffdox</span>
+              <span className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600 truncate">Staffdox</span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-8">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -424,7 +424,7 @@ const Header = memo(function Header() {
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md mx-8">
+          <div className="hidden lg:flex flex-1 max-w-md mx-4 xl:mx-8">
             <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -433,7 +433,7 @@ const Header = memo(function Header() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search jobs..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
             </form>
@@ -593,7 +593,7 @@ const Header = memo(function Header() {
                       {(user?.firstName || user?.email || 'U').charAt(0).toUpperCase()}
                     </span>
                   </div>
-                  <span className="hidden md:block">{user.firstName || user.email}</span>
+                  <span className="hidden lg:block text-sm xl:text-base">{user.firstName || user.email}</span>
                 </button>
 
                 {/* Dropdown Menu */}
@@ -724,7 +724,8 @@ const Header = memo(function Header() {
             {/* Mobile menu button */}
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="md:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 ml-2"
+              aria-label="Toggle menu"
             >
               {showMobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -733,7 +734,7 @@ const Header = memo(function Header() {
 
         {/* Mobile Navigation */}
         {showMobileMenu && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div className="lg:hidden border-t border-gray-200 py-4">
             {/* Mobile Search */}
             <form onSubmit={handleSearch} className="mb-4">
               <div className="relative">
@@ -856,21 +857,21 @@ const Header = memo(function Header() {
     </header>
 
     {showEmployerModal && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl relative">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
           <button
             onClick={() => setShowEmployerModal(false)}
             className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
           >
             <X className="w-5 h-5" />
           </button>
-          <div className="p-6 md:p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Employer Login Request</h2>
-            <p className="text-sm text-gray-600 mb-6">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">Employer Login Request</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
               Share your hiring requirements and our admin team will reach out to onboard you as an employer.
             </p>
-            <form onSubmit={handleEmployerSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleEmployerSubmit} className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
                   <input

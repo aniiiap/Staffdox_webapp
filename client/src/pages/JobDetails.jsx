@@ -253,47 +253,51 @@ export default function JobDetails() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
       {/* Back Button */}
       <button
         onClick={() => navigate('/jobs')}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6"
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-4 sm:mb-6 text-sm sm:text-base"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Jobs
       </button>
 
       {/* Job Header */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex-1">
-            <div className="flex items-center mb-2">
-              <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
+      <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2 sm:mb-3">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 break-words">{job.title}</h1>
               {job.isRemote && (
-                <span className="ml-3 px-3 py-1 text-sm font-medium bg-green-100 text-green-800 rounded-full">
+                <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-green-100 text-green-800 rounded-full self-start sm:self-auto">
                   Remote
                 </span>
               )}
             </div>
             
-            <div className="flex items-center text-gray-600 mb-4">
-              <Building className="w-5 h-5 mr-2" />
-              <span className="text-xl font-semibold">{job.company}</span>
-              <span className="mx-2">•</span>
-              <MapPin className="w-5 h-5 mr-1" />
-              <span>{job.location}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center text-gray-600 mb-3 sm:mb-4 gap-1 sm:gap-0">
+              <div className="flex items-center">
+                <Building className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="text-base sm:text-lg lg:text-xl font-semibold truncate">{job.company}</span>
+              </div>
+              <span className="hidden sm:inline mx-2">•</span>
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 mr-1 flex-shrink-0" />
+                <span className="truncate">{job.location}</span>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 mb-6">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-6 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
               <div className="flex items-center">
-                <Briefcase className="w-4 h-4 mr-2" />
+                <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
                 <span>{job.employmentType}</span>
               </div>
               
               {job.experience && (
                 <div className="flex items-center">
-                  <Users className="w-4 h-4 mr-2" />
-                  <span>
+                  <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                  <span className="whitespace-nowrap">
                     {job.experience.min}-{job.experience.max} years experience
                   </span>
                 </div>
@@ -301,39 +305,39 @@ export default function JobDetails() {
 
               {job.salary && (job.salary.min || job.salary.max) && (
                 <div className="flex items-center">
-                  <IndianRupee className="w-4 h-4 mr-2" />
-                  <span>{formatSalary(job.salary.min, job.salary.max, job.salary.currency)}</span>
+                  <IndianRupee className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                  <span className="truncate">{formatSalary(job.salary.min, job.salary.max, job.salary.currency)}</span>
                 </div>
               )}
 
               <div className="flex items-center">
-                <Calendar className="w-4 h-4 mr-2" />
-                <span>Posted {formatDate(job.createdAt)}</span>
+                <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="whitespace-nowrap">Posted {formatDate(job.createdAt)}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <span className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
                 {job.category}
               </span>
               {job.industry && (
-                <span className="px-3 py-1 text-sm font-medium bg-gray-100 text-gray-800 rounded-full">
+                <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-gray-100 text-gray-800 rounded-full">
                   {job.industry}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="mt-6 lg:mt-0 lg:ml-6">
+          <div className="w-full sm:w-auto lg:mt-0 lg:ml-6 flex-shrink-0">
             {userLoading ? (
-              <div className="px-6 py-3 rounded-md bg-gray-200 text-gray-500 flex items-center">
+              <div className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-md bg-gray-200 text-gray-500 flex items-center justify-center text-sm sm:text-base">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500 mr-2"></div>
                 Loading...
               </div>
             ) : hasApplied ? (
-              <div className="px-6 py-3 rounded-md bg-gray-100 text-gray-500 flex items-center cursor-not-allowed">
-                <CheckCircle className="w-4 h-4 mr-2 text-green-500" />
-                {myApplicationStatus ? `Applied • ${myApplicationStatus}` : 'Applied'}
+              <div className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-md bg-gray-100 text-gray-500 flex items-center justify-center cursor-not-allowed text-sm sm:text-base">
+                <CheckCircle className="w-4 h-4 mr-2 text-green-500 flex-shrink-0" />
+                <span className="text-center">{myApplicationStatus ? `Applied • ${myApplicationStatus}` : 'Applied'}</span>
               </div>
             ) : (
               <button
@@ -344,7 +348,7 @@ export default function JobDetails() {
                     setShowApplicationModal(true);
                   }
                 }}
-                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto bg-blue-600 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-md hover:bg-blue-700 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base font-medium"
                 disabled={userLoading}
               >
                 <Send className="w-4 h-4 mr-2" />
@@ -356,26 +360,26 @@ export default function JobDetails() {
       </div>
 
       {/* Job Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Job Description */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Job Description</h2>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Job Description</h2>
             <div className="prose max-w-none">
-              <p className="text-gray-700 whitespace-pre-wrap">{job.description}</p>
+              <p className="text-sm sm:text-base text-gray-700 whitespace-pre-wrap">{job.description}</p>
             </div>
           </div>
 
           {/* Requirements */}
           {job.requirements && job.requirements.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Requirements</h2>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Requirements</h2>
               <ul className="space-y-2">
                 {job.requirements.map((req, index) => (
                   <li key={index} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{req}</span>
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-700">{req}</span>
                   </li>
                 ))}
               </ul>
@@ -384,13 +388,13 @@ export default function JobDetails() {
 
           {/* Responsibilities */}
           {job.responsibilities && job.responsibilities.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Responsibilities</h2>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Responsibilities</h2>
               <ul className="space-y-2">
                 {job.responsibilities.map((resp, index) => (
                   <li key={index} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{resp}</span>
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-700">{resp}</span>
                   </li>
                 ))}
               </ul>
@@ -399,13 +403,13 @@ export default function JobDetails() {
 
           {/* Benefits */}
           {job.benefits && job.benefits.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Benefits</h2>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Benefits</h2>
               <ul className="space-y-2">
                 {job.benefits.map((benefit, index) => (
                   <li key={index} className="flex items-start">
-                    <CheckCircle className="w-5 h-5 text-purple-500 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">{benefit}</span>
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm sm:text-base text-gray-700">{benefit}</span>
                   </li>
                 ))}
               </ul>
@@ -414,43 +418,43 @@ export default function JobDetails() {
         </div>
 
         {/* Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Job Summary */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Job Summary</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Employment Type</span>
-                <span className="font-medium">{job.employmentType}</span>
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Job Summary</h3>
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-xs sm:text-sm text-gray-600">Employment Type</span>
+                <span className="text-xs sm:text-sm font-medium">{job.employmentType}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Location</span>
-                <span className="font-medium">{job.location}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-xs sm:text-sm text-gray-600">Location</span>
+                <span className="text-xs sm:text-sm font-medium break-words sm:text-right">{job.location}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Category</span>
-                <span className="font-medium">{job.category}</span>
+              <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                <span className="text-xs sm:text-sm text-gray-600">Category</span>
+                <span className="text-xs sm:text-sm font-medium">{job.category}</span>
               </div>
               {job.experience && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Experience</span>
-                  <span className="font-medium">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-xs sm:text-sm text-gray-600">Experience</span>
+                  <span className="text-xs sm:text-sm font-medium">
                     {job.experience.min}-{job.experience.max} years
                   </span>
                 </div>
               )}
               {job.salary && (job.salary.min || job.salary.max) && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Salary</span>
-                  <span className="font-medium">
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-xs sm:text-sm text-gray-600">Salary</span>
+                  <span className="text-xs sm:text-sm font-medium break-words sm:text-right">
                     {formatSalary(job.salary.min, job.salary.max, job.salary.currency)}
                   </span>
                 </div>
               )}
               {job.deadline && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Application Deadline</span>
-                  <span className="font-medium">{formatDate(job.deadline)}</span>
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-0">
+                  <span className="text-xs sm:text-sm text-gray-600">Application Deadline</span>
+                  <span className="text-xs sm:text-sm font-medium">{formatDate(job.deadline)}</span>
                 </div>
               )}
             </div>
@@ -458,13 +462,13 @@ export default function JobDetails() {
 
           {/* Required Skills */}
           {job.skills && job.skills.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Required Skills</h3>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Required Skills</h3>
               <div className="flex flex-wrap gap-2">
                 {job.skills.map((skill, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full"
+                    className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-blue-100 text-blue-800 rounded-full"
                   >
                     {skill}
                   </span>
@@ -474,9 +478,9 @@ export default function JobDetails() {
           )}
 
           {/* Company Info */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">About {job.company}</h3>
-            <p className="text-gray-600 text-sm">
+          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">About {job.company}</h3>
+            <p className="text-xs sm:text-sm text-gray-600">
               This is a great opportunity to work with {job.company}. 
               Apply now to be part of their team!
             </p>
@@ -488,20 +492,21 @@ export default function JobDetails() {
       {showApplicationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Apply for {job.title}</h2>
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 pr-2 break-words">Apply for {job.title}</h2>
                 <button
                   onClick={() => setShowApplicationModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+                  aria-label="Close modal"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleApplicationSubmit} className="space-y-6">
+              <form onSubmit={handleApplicationSubmit} className="space-y-4 sm:space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Cover Letter
                   </label>
                   <textarea
@@ -516,20 +521,20 @@ export default function JobDetails() {
                     rows={6}
                     maxLength={180}
                     placeholder="Tell us why you're interested in this position and what makes you a great fit... (max 180 characters)"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
                   />
                   {formErrors.coverLetter && (
-                    <p className="mt-2 text-sm text-red-600">{formErrors.coverLetter}</p>
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-600">{formErrors.coverLetter}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                     Resume/CV {!applicationForm.resume && <span className="text-red-500">*</span>}
                   </label>
-                  <div className={`border-2 border-dashed rounded-lg p-6 text-center ${formErrors.resume ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}>
-                    <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-2">
+                  <div className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center ${formErrors.resume ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}>
+                    <FileText className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-2 sm:mb-4" />
+                    <p className="text-xs sm:text-sm text-gray-600 mb-2">
                       Upload your resume (PDF, DOC, DOCX) 
                       {!applicationForm.resume && <span className="text-red-500"> *Required</span>}
                     </p>
@@ -553,31 +558,31 @@ export default function JobDetails() {
                     />
                     <label
                       htmlFor="resume-upload"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer inline-block"
+                      className="bg-blue-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-blue-700 cursor-pointer inline-block text-xs sm:text-sm font-medium"
                     >
                       Choose File
                     </label>
                     {applicationForm.resume && (
-                      <p className="text-sm text-green-600 mt-2">✓ {applicationForm.resume.name}</p>
+                      <p className="text-xs sm:text-sm text-green-600 mt-2 break-words">✓ {applicationForm.resume.name}</p>
                     )}
                   </div>
                   {formErrors.resume && (
-                    <p className="mt-2 text-sm text-red-600">{formErrors.resume}</p>
+                    <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-600">{formErrors.resume}</p>
                   )}
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-6 border-t">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-4 pt-4 sm:pt-6 border-t">
                   <button
                     type="button"
                     onClick={() => setShowApplicationModal(false)}
-                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                    className="w-full sm:w-auto px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 text-sm sm:text-base font-medium"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={applying}
-                    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
+                    className="w-full sm:w-auto bg-blue-600 text-white px-4 sm:px-6 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center text-sm sm:text-base font-medium"
                   >
                     {applying ? (
                       <>

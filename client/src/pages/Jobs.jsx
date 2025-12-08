@@ -164,60 +164,59 @@ export default function Jobs() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Find Your Dream Job</h1>
-              <p className="mt-2 text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Find Your Dream Job</h1>
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">
                 Discover {pagination.total} opportunities across various industries
               </p>
             </div>
-            {/* Removed non-functional Filters button; filters are visible in sidebar */}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
           {/* Filters Sidebar */}
-          <div className={`lg:w-80`}>
-            <div className="bg-white rounded-lg shadow-sm border p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Filters</h3>
+          <div className={`w-full lg:w-80 flex-shrink-0`}>
+            <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Filters</h3>
                 <button
                   onClick={clearFilters}
-                  className="text-sm text-blue-600 hover:text-blue-800"
+                  className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
                 >
                   Clear all
                 </button>
               </div>
 
               {/* Search */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Search Jobs
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 sm:w-4 sm:h-4" />
                   <input
                     type="text"
                     value={filters.search}
                     onChange={(e) => handleFilterChange('search', e.target.value)}
                     placeholder="Job title, company, skills..."
-                    className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-8 sm:pl-10 pr-2 sm:pr-3 py-1.5 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
               </div>
 
               {/* Category */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Category
                 </label>
                 <select
                   value={filters.category}
                   onChange={(e) => handleFilterChange('category', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">All Categories</option>
                   {categories.map(category => (
@@ -227,8 +226,8 @@ export default function Jobs() {
               </div>
 
               {/* Location */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Location
                 </label>
                 <input
@@ -236,19 +235,19 @@ export default function Jobs() {
                   value={filters.location}
                   onChange={(e) => handleFilterChange('location', e.target.value)}
                   placeholder="City, State"
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
 
               {/* Employment Type */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Employment Type
                 </label>
                 <select
                   value={filters.employmentType}
                   onChange={(e) => handleFilterChange('employmentType', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">All Types</option>
                   {employmentTypes.map(type => (
@@ -258,14 +257,14 @@ export default function Jobs() {
               </div>
 
               {/* Experience Level */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Experience Level
                 </label>
                 <select
                   value={filters.experience}
                   onChange={(e) => handleFilterChange('experience', e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">All Levels</option>
                   {experienceLevels.map(level => (
@@ -275,8 +274,8 @@ export default function Jobs() {
               </div>
 
               {/* Salary Range */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Salary Range (LPA)
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -285,21 +284,21 @@ export default function Jobs() {
                     value={filters.salaryMin}
                     onChange={(e) => handleFilterChange('salaryMin', e.target.value)}
                     placeholder="Min"
-                    className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                   <input
                     type="number"
                     value={filters.salaryMax}
                     onChange={(e) => handleFilterChange('salaryMax', e.target.value)}
                     placeholder="Max"
-                    className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
               </div>
 
               {/* Sort By */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
                   Sort By
                 </label>
                 <select
@@ -309,7 +308,7 @@ export default function Jobs() {
                     handleFilterChange('sortBy', sortBy);
                     handleFilterChange('sortOrder', sortOrder);
                   }}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-1.5 sm:p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="createdAt-desc">Newest First</option>
                   <option value="createdAt-asc">Oldest First</option>
@@ -336,58 +335,62 @@ export default function Jobs() {
                 ))}
               </div>
             ) : jobs.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-                <Briefcase className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No jobs found</h3>
-                <p className="text-gray-600 mb-4">
+              <div className="bg-white rounded-lg shadow-sm border p-6 sm:p-12 text-center">
+                <Briefcase className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No jobs found</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4 px-2">
                   Try adjusting your search criteria or check back later for new opportunities.
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="text-blue-600 hover:text-blue-800 font-medium"
+                  className="text-sm sm:text-base text-blue-600 hover:text-blue-800 font-medium"
                 >
                   Clear all filters
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {jobs.map((job) => (
                   <div key={job._id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                    <div className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900 hover:text-blue-600">
+                    <div className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 hover:text-blue-600 break-words">
                               <Link to={`/jobs/${job._id}`}>{job.title}</Link>
                             </h3>
                             {job.isRemote && (
-                              <span className="ml-2 px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full self-start sm:self-auto">
                                 Remote
                               </span>
                             )}
                           </div>
                           
-                          <div className="flex items-center text-gray-600 mb-3">
-                            <Building className="w-4 h-4 mr-1" />
-                            <span className="font-medium">{job.company}</span>
-                            <span className="mx-2">•</span>
-                            <MapPin className="w-4 h-4 mr-1" />
-                            <span>{job.location}</span>
+                          <div className="flex flex-col sm:flex-row sm:items-center text-gray-600 mb-3 gap-1 sm:gap-0">
+                            <div className="flex items-center">
+                              <Building className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="font-medium truncate">{job.company}</span>
+                            </div>
+                            <span className="hidden sm:inline mx-2">•</span>
+                            <div className="flex items-center">
+                              <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
+                              <span className="truncate">{job.location}</span>
+                            </div>
                           </div>
 
-                          <p className="text-gray-700 mb-4 line-clamp-2">
+                          <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 line-clamp-2">
                             {job.description}
                           </p>
 
-                          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600">
                             <div className="flex items-center">
-                              <Briefcase className="w-4 h-4 mr-1" />
+                              <Briefcase className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                               <span>{job.employmentType}</span>
                             </div>
                             
                             {job.experience && (
                               <div className="flex items-center">
-                                <Users className="w-4 h-4 mr-1" />
+                                <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
                                 <span>
                                   {job.experience.min}-{job.experience.max} years
                                 </span>
@@ -396,19 +399,19 @@ export default function Jobs() {
 
                             {job.salary && (job.salary.min || job.salary.max) && (
                               <div className="flex items-center">
-                                <IndianRupee className="w-4 h-4 mr-1" />
-                                <span>{formatSalary(job.salary.min, job.salary.max, job.salary.currency)}</span>
+                                <IndianRupee className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                                <span className="truncate">{formatSalary(job.salary.min, job.salary.max, job.salary.currency)}</span>
                               </div>
                             )}
 
                             <div className="flex items-center">
-                              <Calendar className="w-4 h-4 mr-1" />
-                              <span>Posted {formatDate(job.createdAt)}</span>
+                              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                              <span className="whitespace-nowrap">Posted {formatDate(job.createdAt)}</span>
                             </div>
                           </div>
 
                           {job.skills && job.skills.length > 0 && (
-                            <div className="mt-4">
+                            <div className="mt-3 sm:mt-4">
                               <div className="flex flex-wrap gap-2">
                                 {job.skills.slice(0, 5).map((skill, index) => (
                                   <span
@@ -428,13 +431,13 @@ export default function Jobs() {
                           )}
                         </div>
 
-                        <div className="ml-4 flex flex-col items-end">
-                          <span className="px-3 py-1 text-sm font-medium bg-blue-100 text-blue-800 rounded-full mb-2">
+                        <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 sm:gap-0 sm:ml-4">
+                          <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium bg-blue-100 text-blue-800 rounded-full">
                             {job.category}
                           </span>
                           <Link
                             to={`/jobs/${job._id}`}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                            className="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm sm:text-base whitespace-nowrap"
                           >
                             View Details
                           </Link>
@@ -448,36 +451,93 @@ export default function Jobs() {
 
             {/* Pagination */}
             {pagination.totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <nav className="flex items-center space-x-2">
+              <div className="mt-6 sm:mt-8 flex justify-center">
+                <nav className="flex items-center space-x-1 sm:space-x-2 flex-wrap justify-center gap-2 sm:gap-0">
                   <button
                     onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
                     disabled={pagination.page === 1}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Prev</span>
                   </button>
                   
-                  {[...Array(pagination.totalPages)].map((_, i) => (
-                    <button
-                      key={i + 1}
-                      onClick={() => setPagination(prev => ({ ...prev, page: i + 1 }))}
-                      className={`px-3 py-2 text-sm font-medium rounded-md ${
-                        pagination.page === i + 1
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
+                  {/* Show page numbers - hide some on mobile if too many */}
+                  {pagination.totalPages <= 7 ? (
+                    // Show all pages if 7 or fewer
+                    [...Array(pagination.totalPages)].map((_, i) => (
+                      <button
+                        key={i + 1}
+                        onClick={() => setPagination(prev => ({ ...prev, page: i + 1 }))}
+                        className={`px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md ${
+                          pagination.page === i + 1
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {i + 1}
+                      </button>
+                    ))
+                  ) : (
+                    // Show first, current-1, current, current+1, last on mobile
+                    <>
+                      <button
+                        onClick={() => setPagination(prev => ({ ...prev, page: 1 }))}
+                        className={`px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md ${
+                          pagination.page === 1
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        1
+                      </button>
+                      {pagination.page > 2 && <span className="px-1 text-gray-500">...</span>}
+                      {pagination.page > 1 && (
+                        <button
+                          onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                          className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                          {pagination.page - 1}
+                        </button>
+                      )}
+                      {pagination.page !== 1 && pagination.page !== pagination.totalPages && (
+                        <button
+                          className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md bg-blue-600 text-white"
+                        >
+                          {pagination.page}
+                        </button>
+                      )}
+                      {pagination.page < pagination.totalPages && (
+                        <button
+                          onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                          className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                        >
+                          {pagination.page + 1}
+                        </button>
+                      )}
+                      {pagination.page < pagination.totalPages - 1 && <span className="px-1 text-gray-500">...</span>}
+                      {pagination.totalPages > 1 && (
+                        <button
+                          onClick={() => setPagination(prev => ({ ...prev, page: pagination.totalPages }))}
+                          className={`px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-md ${
+                            pagination.page === pagination.totalPages
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          {pagination.totalPages}
+                        </button>
+                      )}
+                    </>
+                  )}
                   
                   <button
                     onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
                     disabled={pagination.page === pagination.totalPages}
-                    className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Next
+                    <span className="hidden sm:inline">Next</span>
+                    <span className="sm:hidden">Next</span>
                   </button>
                 </nav>
               </div>

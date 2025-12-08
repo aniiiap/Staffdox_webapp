@@ -134,50 +134,51 @@ export default function Dashboard() {
   <div className="min-h-screen bg-gray-50">
     {/* Hero Section */}
     <div className="bg-gradient-to-r from-red-500 via-beige-600 to-indigo-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <div className="text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 sm:mb-6 px-2">
             {me ? `Welcome back, ${me.firstName || 'Professional'}!` : 'Your Career Partner'}
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100 max-w-3xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 text-blue-100 max-w-3xl mx-auto px-2">
             {me 
               ? 'We connect talented professionals with exceptional opportunities. Let\'s advance your career together.'
               : 'Expert recruitment services tailored to your career goals. Find your next opportunity with us.'}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
       {me ? (
               <>
                 {me.role === 'user' && (
                   <Link
                     to="/jobs"
-                    className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2"
+                    className="bg-white text-blue-700 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
                   >
-                    <Briefcase className="w-5 h-5" />
+                    <Briefcase className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Explore Opportunities</span>
                   </Link>
                 )}
                 {me.role === 'user' ? (
                   <Link
                     to="/your-cv"
-                    className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors flex items-center justify-center space-x-2"
+                    className="border-2 border-white text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
                   >
-                    <FileText className="w-5 h-5" />
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>Your CV</span>
                   </Link>
                 ) : me.role === 'recruiter' ? (
                   <Link
                     to="/recruiter"
-                    className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors flex items-center justify-center space-x-2"
+                    className="border-2 border-white text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
                   >
-                    <FileText className="w-5 h-5" />
-                    <span>Recruiter Dashboard</span>
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <span className="hidden sm:inline">Recruiter Dashboard</span>
+                    <span className="sm:hidden">Dashboard</span>
                   </Link>
                 ) : (
                   <Link
                     to="/admin?tab=resumes"
-                    className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors flex items-center justify-center space-x-2"
+                    className="border-2 border-white text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base"
                   >
-                    <FileText className="w-5 h-5" />
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>View Resumes</span>
                   </Link>
                 )}
@@ -186,13 +187,13 @@ export default function Dashboard() {
               <>
                 <Link
                   to="/jobs"
-                  className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                  className="bg-white text-blue-700 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
                 >
                   Browse Jobs
                 </Link>
                 <Link
                   to="/register"
-                  className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors"
+                  className="border-2 border-white text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors text-sm sm:text-base"
                 >
                   Get Started
                 </Link>
@@ -204,11 +205,11 @@ export default function Dashboard() {
     </div>
 
     {/* Main Content */}
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
       {me ? (
         <div>
           {/* Quick Actions Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
             {me.role === 'user' ? (
               <Link
                 to="/your-cv"
@@ -351,14 +352,14 @@ export default function Dashboard() {
           </div>
 
           {/* Career Services Section */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-8 mb-12 border border-indigo-100">
-            <div className="flex items-center mb-6">
-              <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center mr-4">
-                <Award className="w-6 h-6 text-white" />
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-4 sm:p-6 lg:p-8 mb-8 sm:mb-12 border border-indigo-100">
+            <div className="flex items-center mb-4 sm:mb-6">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 sm:mr-4">
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900">Our Services</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Our Services</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div className="bg-white rounded-lg p-6">
                 <div className="flex items-center mb-3">
                   <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
@@ -399,35 +400,35 @@ export default function Dashboard() {
           </div>
 
           {/* Browse Jobs CTA */}
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-12 text-center border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Ready to Explore Opportunities?</h2>
-            <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+          <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-8 sm:mb-12 text-center border border-gray-100">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">Ready to Explore Opportunities?</h2>
+            <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-2xl mx-auto px-2">
               Browse our curated job listings and find positions that match your skills and career aspirations.
             </p>
             <Link
               to="/jobs"
-              className="inline-flex items-center space-x-2 bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center space-x-2 bg-blue-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
               <span>Browse Jobs</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </Link>
           </div>
         </div>
       ) : (
         <div>
           {/* Why Choose Us Section */}
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-8 sm:mb-12 lg:mb-16 px-2">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
               Why Choose Staffdox?
             </h2>
-            <p className="text-gray-600 max-w-3xl mx-auto text-lg">
+            <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-3xl mx-auto px-2">
               We're a trusted recruitment consultancy dedicated to connecting exceptional talent with outstanding opportunities. 
               Our personalized approach ensures the right fit for both candidates and employers.
             </p>
           </div>
 
           {/* Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-8 sm:mb-12 lg:mb-16">
             <div className="bg-white rounded-xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Users className="w-8 h-8 text-blue-600" />
@@ -460,31 +461,31 @@ export default function Dashboard() {
           </div>
 
           {/* Stats Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-12 mb-16 text-white">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 sm:p-8 lg:p-12 mb-8 sm:mb-12 lg:mb-16 text-white">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 text-center">
               <div>
-                <div className="text-4xl font-bold mb-2">500+</div>
-                <div className="text-blue-100">Active Positions</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">500+</div>
+                <div className="text-xs sm:text-sm text-blue-100">Active Positions</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">200+</div>
-                <div className="text-blue-100">Partner Companies</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">200+</div>
+                <div className="text-xs sm:text-sm text-blue-100">Partner Companies</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">1000+</div>
-                <div className="text-blue-100">Successful Placements</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">1000+</div>
+                <div className="text-xs sm:text-sm text-blue-100">Successful Placements</div>
               </div>
               <div>
-                <div className="text-4xl font-bold mb-2">95%</div>
-                <div className="text-blue-100">Candidate Satisfaction</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">95%</div>
+                <div className="text-xs sm:text-sm text-blue-100">Candidate Satisfaction</div>
               </div>
             </div>
           </div>
 
           {/* How It Works */}
-          <div className="mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">How It Works</h2>
-            <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-2">
+          <div className="mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center mb-6 sm:mb-8 lg:mb-12 px-2">How It Works</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-2 lg:gap-4 px-2">
               {[
                 { step: '1', title: 'Create Profile', desc: 'Register and build your professional profile' },
                 { step: '2', title: 'Upload CV', desc: 'Share your resume with our recruitment team' },
@@ -493,21 +494,21 @@ export default function Dashboard() {
               ].map((item, index) => (
                 <React.Fragment key={item.step}>
                   <div 
-                    className="text-center flex-1 max-w-[200px] animate-fade-in-up"
+                    className="text-center flex-1 max-w-[200px] animate-fade-in-up w-full sm:w-auto"
                     style={{
                       animationDelay: `${index * 0.2}s`,
                       animationFillMode: 'both'
                     }}
                   >
-                    <div className="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold hover:scale-110 transition-transform duration-300 hover:shadow-lg">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-xl sm:text-2xl font-bold hover:scale-110 transition-transform duration-300 hover:shadow-lg">
                       {item.step}
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-600">{item.desc}</p>
+                    <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-2">{item.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 px-2">{item.desc}</p>
                   </div>
                   {index < 3 && (
                     <ArrowRight 
-                      className="w-8 h-8 text-blue-600 mx-2 hidden md:block flex-shrink-0 animate-pulse-arrow"
+                      className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600 mx-2 hidden sm:block flex-shrink-0 animate-pulse-arrow rotate-90 sm:rotate-0"
                       style={{
                         animationDelay: `${(index + 1) * 0.2}s`,
                         animationFillMode: 'both'
@@ -522,18 +523,18 @@ export default function Dashboard() {
       )}
 
       {/* Job Categories */}
-      <div className="mb-12">
-        <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+      <div className="mb-8 sm:mb-12">
+        <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 lg:mb-8 text-center px-2">
           Browse by Industry
         </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
           {['Technology', 'Finance', 'Healthcare', 'Marketing', 'Sales', 'HR', 'Operations', 'Design', 'Education', 'Other'].map((category) => (
             <Link
               key={category}
               to={`/jobs?category=${category}`}
-              className="bg-white rounded-lg shadow p-4 text-center hover:shadow-lg hover:bg-blue-50 transition-all border border-gray-200"
+              className="bg-white rounded-lg shadow p-3 sm:p-4 text-center hover:shadow-lg hover:bg-blue-50 transition-all border border-gray-200"
             >
-              <div className="text-base font-medium text-gray-900">{category}</div>
+              <div className="text-sm sm:text-base font-medium text-gray-900">{category}</div>
             </Link>
           ))}
         </div>
@@ -541,21 +542,21 @@ export default function Dashboard() {
 
       {/* CTA Section for Non-logged Users */}
       {!me && (
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-12 text-center text-white mb-12">
-          <h2 className="text-3xl font-bold mb-4">Ready to Take the Next Step?</h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-xl p-6 sm:p-8 lg:p-12 text-center text-white mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 px-2">Ready to Take the Next Step?</h2>
+          <p className="text-base sm:text-lg lg:text-xl text-blue-100 mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             Join thousands of professionals who have found their dream roles through Staffdox
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-2">
             <Link
               to="/register"
-              className="bg-white text-blue-700 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-blue-700 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
             >
               Get Started Today
             </Link>
             <Link
               to="/contact"
-              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors"
+              className="border-2 border-white text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-700 transition-colors text-sm sm:text-base"
             >
               Contact Us
             </Link>
@@ -566,8 +567,8 @@ export default function Dashboard() {
 
     {/* Profile Modal */}
     {showModal && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
           <button
             onClick={() => setShowModal(false)}
             className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
