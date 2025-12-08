@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import { trackPageView } from './utils/analytics';
 
 // Lazy load all pages for code splitting and better performance
 const Contact = lazy(() => import('./pages/Contact.jsx'));
@@ -43,6 +44,11 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [location.pathname]);
+
+  // Track page views for analytics
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location]);
   const hideFooterRoutes = ['/login', '/register', '/employer/login', '/employer/dashboard', '/talent-cloud', '/forgot-password', '/reset-password', '/user-forgot-password', '/payment', '/checkout'];
   const shouldShowFooter = !hideFooterRoutes.includes(location.pathname);
   const hideHeaderRoutes = ['/employer/login', '/employer/dashboard', '/talent-cloud', '/forgot-password', '/reset-password', '/user-forgot-password', '/payment', '/checkout'];
