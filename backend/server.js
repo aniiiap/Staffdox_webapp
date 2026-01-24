@@ -142,8 +142,9 @@ app.use('/api', paymentRoutes);
 app.use('/api/cv', cvRoutes);
 app.use('/api/blogs', blogRoutes);
 
-// SEO Routes (sitemap and robots.txt) - public, no /api prefix
+// SEO Routes (sitemap and robots.txt) - available at both root and /api
 app.use('/', sitemapRoutes);
+app.use('/api', sitemapRoutes); // Also available under /api for frontend proxying
 
 // 404 handler (must be before error handler)
 app.use((req, res) => {

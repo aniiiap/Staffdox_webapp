@@ -3,7 +3,9 @@ const Blog = require('../models/Blog');
 // Generate XML sitemap
 exports.generateSitemap = async (req, res) => {
   try {
-    const baseUrl = process.env.CLIENT_URL || 'https://staffdox.com';
+    // Use CLIENT_URL from env, remove trailing slash, and handle www vs non-www
+    let baseUrl = process.env.CLIENT_URL || 'https://staffdox.com';
+    baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
     
     // Get all published blogs
     const blogs = await Blog.find({ published: true })
