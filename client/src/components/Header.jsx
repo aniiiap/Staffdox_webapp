@@ -14,7 +14,8 @@ import {
   Check,
   FileText,
   ChevronDown,
-  CreditCard
+  CreditCard,
+  BookOpen
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -377,6 +378,9 @@ const Header = memo(function Header() {
   if (user && user.role === 'user') {
     navItems.push({ path: '/your-cv', label: 'Your CV', icon: FileText });
   }
+
+  // Show Blog for everyone
+  navItems.push({ path: '/blog', label: 'Blog', icon: BookOpen });
 
   if (user?.role === 'recruiter') {
     navItems.push({ path: '/recruiter', label: 'Recruiter', icon: Settings });

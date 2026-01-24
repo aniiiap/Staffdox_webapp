@@ -20,6 +20,8 @@ const otpRoutes = require('./src/routes/otpRoutes');
 const contactRoutes = require('./src/routes/contactRoutes');
 const paymentRoutes = require('./src/routes/paymentRoutes');
 const cvRoutes = require('./src/routes/cvRoutes');
+const blogRoutes = require('./src/routes/blogRoutes');
+const sitemapRoutes = require('./src/routes/sitemapRoutes');
 
 const app = express();
 
@@ -138,6 +140,10 @@ app.use('/api/otp', otpRoutes);
 app.use('/api', contactRoutes);
 app.use('/api', paymentRoutes);
 app.use('/api/cv', cvRoutes);
+app.use('/api/blogs', blogRoutes);
+
+// SEO Routes (sitemap and robots.txt) - public, no /api prefix
+app.use('/', sitemapRoutes);
 
 // 404 handler (must be before error handler)
 app.use((req, res) => {
