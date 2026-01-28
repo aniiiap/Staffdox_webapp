@@ -1,5 +1,12 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://staffdox-webapp.onrender.com/sitemap.xml"
+    },
+    { 
+      "source": "/(.*)", 
+      "destination": "/" 
+    }
   ]
 }
