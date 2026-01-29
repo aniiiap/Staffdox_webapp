@@ -3,6 +3,7 @@ const BlogView = require('../models/BlogView');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { sendBlogNotificationToUsers } = require('../utils/emailService');
 
 // Get all published blogs (public)
 exports.getBlogs = async (req, res) => {
@@ -294,6 +295,18 @@ exports.createBlog = async (req, res) => {
     const populatedBlog = await Blog.findById(blog._id)
       .populate('author', 'firstName lastName email');
     
+    // Send email notifications to all users if blog is published
+    // Do this asynchronously so it doesn't block the response
+    if (blog.published) {
+      sendBlogNotificationToUsers(populatedBlog)
+        .then(result => {
+          console.log('Blog notification result:', result);
+        })
+        .catch(error => {
+          console.error('Error sending blog notifications (non-blocking):', error);
+        });
+    }
+    
     res.status(201).json({ blog: populatedBlog });
   } catch (error) {
     console.error('Create blog error:', error);
@@ -350,13 +363,17 @@ exports.updateBlog = async (req, res) => {
       blog.readTime = trimmedReadTime || null; // Set to null to clear the field
     }
     
-    // Handle published status
+    // Handle published status - track if blog was just published
+    let wasJustPublished = false;
     if (published !== undefined) {
-      const wasPublished = blog.published;
+      const wasPublishedBefore = blog.published;
       blog.published = published === true || published === 'true';
       
+      // Check if blog was just published (was draft, now published)
+      wasJustPublished = !wasPublishedBefore && blog.published;
+      
       // Set publishedAt when publishing for the first time
-      if (!wasPublished && blog.published && !blog.publishedAt) {
+      if (wasJustPublished && !blog.publishedAt) {
         blog.publishedAt = new Date();
       }
     }
@@ -381,6 +398,17 @@ exports.updateBlog = async (req, res) => {
     
     const updatedBlog = await Blog.findById(blog._id)
       .populate('author', 'firstName lastName email');
+    
+    // Send email notifications if blog was just published (was draft, now published)
+    if (wasJustPublished) {
+      sendBlogNotificationToUsers(updatedBlog)
+        .then(result => {
+          console.log(`Blog notification sent to ${result.sent || 0} users. Failed: ${result.failed || 0}`);
+        })
+        .catch(error => {
+          console.error('Error sending blog notifications (non-blocking):', error);
+        });
+    }
     
     res.json({ blog: updatedBlog });
   } catch (error) {

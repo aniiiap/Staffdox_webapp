@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import API from '../utils/api';
 import { Calendar, User, Tag, Search, Filter, Clock, Eye, ArrowRight, FileText, Plus, Edit, Trash2, X, BarChart3 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import RichTextEditor from '../components/RichTextEditor';
 
 const categories = [
   'All',
@@ -25,7 +26,7 @@ export default function Blog() {
   const [searchQuery, setSearchQuery] = useState('');
   const [tags, setTags] = useState([]);
   const [selectedTag, setSelectedTag] = useState('');
-  const [user, setUser] = useState(null);
+  const [, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   
   // Admin management state
@@ -54,6 +55,7 @@ export default function Blog() {
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [selectedBlogForAnalytics, setSelectedBlogForAnalytics] = useState(null);
 
+
   // Basic SEO: set page title
   useEffect(() => {
     document.title = 'Blog | Staffdox – Career Insights & Job Search Advice';
@@ -75,10 +77,6 @@ export default function Blog() {
         });
     }
   }, []);
-
-  useEffect(() => {
-    fetchBlogs();
-  }, [page, selectedCategory, selectedTag, searchQuery, isAdmin, blogFilters]);
 
   const fetchBlogs = async () => {
     try {
@@ -126,6 +124,11 @@ export default function Blog() {
     }
   };
 
+  useEffect(() => {
+    fetchBlogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, selectedCategory, selectedTag, searchQuery, isAdmin, blogFilters]);
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -146,6 +149,13 @@ export default function Blog() {
   const handleBlogSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Basic validation for rich text (Quill may include empty tags)
+      const plainText = (blogForm.content || '').replace(/<[^>]*>/g, '').trim();
+      if (!plainText) {
+        toast.error('Content is required');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('title', blogForm.title);
       formData.append('content', blogForm.content);
@@ -599,15 +609,15 @@ export default function Blog() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Content * (HTML supported)
+                      Content * (Rich Text)
                     </label>
-                    <textarea
+                    <RichTextEditor
                       value={blogForm.content}
-                      onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
-                      required
-                      rows={15}
-                      className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                      onChange={(html) => setBlogForm({ ...blogForm, content: html })}
                     />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Use headings, bold/italic/underline, bullet points, numbered lists, links, images, and alignment.
+                    </p>
                   </div>
 
                   <div>

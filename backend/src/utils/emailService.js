@@ -1084,6 +1084,197 @@ const sendSalesEnquiryThankYou = async (email, contactName, companyName) => {
   }
 };
 
+// Blog notification email template
+const getBlogNotificationTemplate = (blog, userName) => {
+  const baseUrl = process.env.CLIENT_URL || 'https://www.staffdox.co.in';
+  const blogUrl = blog.slug ? `${baseUrl}/blog/${blog.slug}` : `${baseUrl}/blog/${blog._id}`;
+  const excerpt = blog.excerpt || blog.content.replace(/<[^>]*>/g, '').substring(0, 200).trim();
+  const readTimeText = blog.readTime ? ` • ${blog.readTime}` : '';
+  const categoryBadge = blog.category || 'Blog';
+  
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>New Blog Post: ${blog.title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 20px 0; text-align: center; background-color: #ffffff;">
+            <table role="presentation" style="width: 600px; margin: 0 auto; border-collapse: collapse;">
+              <!-- Header -->
+              <tr>
+                <td style="padding: 30px 20px; text-align: center; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);">
+                  <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">
+                    <span style="display: inline-block; margin-right: 8px;">📝</span>
+                    New Blog Post Published!
+                  </h1>
+                </td>
+              </tr>
+              
+              <!-- Main Content -->
+              <tr>
+                <td style="padding: 30px; background-color: #ffffff;">
+                  <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                    Hi ${userName || 'there'},
+                  </p>
+                  
+                  <p style="margin: 0 0 25px 0; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                    We're excited to share a new blog post that might interest you! 🎉
+                  </p>
+                  
+                  ${blog.featuredImage ? `
+                  <div style="margin: 25px 0; text-align: center;">
+                    <img src="${blog.featuredImage}" alt="${blog.title}" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
+                  </div>
+                  ` : ''}
+                  
+                  <div style="margin: 25px 0; padding: 25px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #2563eb;">
+                    <div style="margin-bottom: 15px;">
+                      <span style="display: inline-block; padding: 6px 12px; background-color: #2563eb; color: #ffffff; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                        ${categoryBadge}
+                      </span>
+                      ${readTimeText ? `<span style="color: #6b7280; font-size: 14px; margin-left: 10px;">${readTimeText}</span>` : ''}
+                    </div>
+                    
+                    <h2 style="margin: 0 0 15px 0; color: #1f2937; font-size: 24px; line-height: 1.3;">
+                      ${blog.title}
+                    </h2>
+                    
+                    ${excerpt ? `
+                    <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 15px; line-height: 1.7;">
+                      ${excerpt}${excerpt.length >= 200 ? '...' : ''}
+                    </p>
+                    ` : ''}
+                    
+                    ${blog.tags && blog.tags.length > 0 ? `
+                    <div style="margin: 15px 0;">
+                      ${blog.tags.slice(0, 5).map(tag => `
+                        <span style="display: inline-block; padding: 4px 10px; margin: 4px 4px 4px 0; background-color: #e5e7eb; color: #4b5563; border-radius: 12px; font-size: 12px;">
+                          #${tag}
+                        </span>
+                      `).join('')}
+                    </div>
+                    ` : ''}
+                  </div>
+                  
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${blogUrl}" 
+                       style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);">
+                      Read Full Article →
+                    </a>
+                  </div>
+                  
+                  <p style="margin: 20px 0 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                    Stay updated with the latest career insights, job search tips, and industry news from Staffdox!
+                  </p>
+                  
+                  <p style="margin: 20px 0 0 0; color: #6b7280; font-size: 14px; line-height: 1.6;">
+                    Best regards,<br>
+                    <strong>The Staffdox Team</strong>
+                  </p>
+                </td>
+              </tr>
+              
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 20px; text-align: center; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                  <p style="margin: 0 0 10px 0; color: #6b7280; font-size: 12px;">
+                    You're receiving this email because you have an account on Staffdox.
+                  </p>
+                  <p style="margin: 10px 0; color: #6b7280; font-size: 12px;">
+                    <a href="${baseUrl}/blog" style="color: #2563eb; text-decoration: none;">View All Blogs</a> | 
+                    <a href="${baseUrl}" style="color: #2563eb; text-decoration: none;">Visit Staffdox</a>
+                  </p>
+                  <p style="margin: 0; color: #9ca3af; font-size: 11px;">
+                    © ${new Date().getFullYear()} Staffdox. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
+// Send blog notification to all users (excluding admins)
+const sendBlogNotificationToUsers = async (blog) => {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log('Email service not configured. Skipping blog notification emails.');
+      return { success: false, message: 'Email service not configured' };
+    }
+
+    // Only send notifications for published blogs
+    if (!blog.published) {
+      console.log('Blog is not published. Skipping notifications.');
+      return { success: true, sent: 0, message: 'Blog not published' };
+    }
+
+    const emailUser = process.env.EMAIL_USER || 'info@staffdox.co.in';
+    const User = require('../models/User');
+    
+    // Get all users and recruiters (exclude admins since they create the blogs)
+    const users = await User.find({ 
+      role: { $in: ['user', 'recruiter'] },
+      email: { $exists: true, $ne: null } // Ensure email exists
+    }).select('email firstName lastName');
+    
+    if (users.length === 0) {
+      console.log('No users to notify about the new blog.');
+      return { success: true, sent: 0 };
+    }
+
+    const transporter = createTransporter();
+    let sentCount = 0;
+    let failedCount = 0;
+
+    // Send emails in batches to avoid overwhelming the email service
+    const batchSize = 10;
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+      
+      await Promise.allSettled(
+        batch.map(async (user) => {
+          try {
+            const userName = user.firstName || user.email.split('@')[0];
+            const mailOptions = {
+              from: `Staffdox <${emailUser}>`,
+              to: user.email,
+              subject: `📝 New Blog Post: ${blog.title}`,
+              html: getBlogNotificationTemplate(blog, userName),
+              text: `New Blog Post: ${blog.title}\n\n${blog.excerpt || blog.content.replace(/<[^>]*>/g, '').substring(0, 200)}\n\nRead more: ${process.env.CLIENT_URL || 'https://www.staffdox.co.in'}/blog/${blog.slug || blog._id}`
+            };
+
+            await transporter.sendMail(mailOptions);
+            sentCount++;
+          } catch (error) {
+            console.error(`Failed to send blog notification to ${user.email}:`, error.message);
+            failedCount++;
+          }
+        })
+      );
+      
+      // Small delay between batches to avoid rate limiting
+      if (i + batchSize < users.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+      }
+    }
+
+    console.log(`Blog notification sent to ${sentCount} users. Failed: ${failedCount}`);
+    return { success: true, sent: sentCount, failed: failedCount };
+  } catch (error) {
+    console.error('Error sending blog notifications:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendEmployerWelcomeEmail,
@@ -1094,5 +1285,6 @@ module.exports = {
   sendContactConfirmation,
   sendSalesEnquiryThankYou,
   createTransporter,
-  getJobNotificationTemplate
+  getJobNotificationTemplate,
+  sendBlogNotificationToUsers
 };
