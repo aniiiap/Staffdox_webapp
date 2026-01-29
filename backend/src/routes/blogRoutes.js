@@ -44,6 +44,7 @@ router.get('/admin/all', requireAdmin, getAllBlogs);
 router.get('/admin/stats', requireAdmin, getBlogStats);
 router.get('/admin/views', requireAdmin, getBlogViews); // Get all blog views
 router.get('/admin/views/:id', requireAdmin, getBlogViewsByBlogId); // Get views for specific blog
+router.post('/admin/upload-image', requireAdmin, uploadImage.single('image'), require('../controllers/blogController').uploadBlogImage);
 router.post('/admin', requireAdmin, uploadImage.single('featuredImage'), blogValidation, createBlog);
 router.put('/admin/:id', requireAdmin, uploadImage.single('featuredImage'), blogValidation, updateBlog);
 router.delete('/admin/:id', requireAdmin, deleteBlog);

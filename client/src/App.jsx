@@ -39,6 +39,8 @@ const PageLoader = () => (
   </div>
 );
 
+import { HelmetProvider } from 'react-helmet-async';
+
 export default function App() {
   const location = useLocation();
 
@@ -57,40 +59,42 @@ export default function App() {
   const shouldShowHeader = !hideHeaderRoutes.includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {shouldShowHeader && <Header />}
-      <main className="flex-grow">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/jobs" element={<Jobs />} />
-            <Route path="/jobs/:id" element={<JobDetails />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/profile" element={<ProtectedRoute><Profile/></ProtectedRoute>} />
-            <Route path="/your-cv" element={<ProtectedRoute><YourCV/></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminDashboard/></ProtectedRoute>} />
-            <Route path="/recruiter" element={<ProtectedRoute><RecruiterDashboard/></ProtectedRoute>} />
-            <Route path="/my-applications" element={<ProtectedRoute><MyApplications/></ProtectedRoute>} />
-            <Route path="/oauth-callback" element={<OAuthCallback />} />
-            <Route path="/unsubscribe" element={<Unsubscribe />} />
-            <Route path="/employer/login" element={<EmployerLogin />} />
-            <Route path="/employer/dashboard" element={<EmployerDashboard />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/user-forgot-password" element={<UserForgotPassword />} />
-            <Route path="/payment" element={<PaymentPage />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-            <Route path="/talent-cloud" element={<TalentCloud />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/blog/:id" element={<BlogDetail />} />
-          </Routes>
-        </Suspense>
-      </main>
-      {shouldShowFooter && <Footer />}
-    </div>
+    <HelmetProvider>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        {shouldShowHeader && <Header />}
+        <main className="flex-grow">
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/jobs" element={<Jobs />} />
+              <Route path="/jobs/:id" element={<JobDetails />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/your-cv" element={<ProtectedRoute><YourCV /></ProtectedRoute>} />
+              <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+              <Route path="/recruiter" element={<ProtectedRoute><RecruiterDashboard /></ProtectedRoute>} />
+              <Route path="/my-applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
+              <Route path="/oauth-callback" element={<OAuthCallback />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
+              <Route path="/employer/login" element={<EmployerLogin />} />
+              <Route path="/employer/dashboard" element={<EmployerDashboard />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/user-forgot-password" element={<UserForgotPassword />} />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+              <Route path="/talent-cloud" element={<TalentCloud />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:id" element={<BlogDetail />} />
+            </Routes>
+          </Suspense>
+        </main>
+        {shouldShowFooter && <Footer />}
+      </div>
+    </HelmetProvider>
   );
 }

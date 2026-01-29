@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import API from '../utils/api';
 import { Calendar, User, Tag, ArrowLeft, Share2, Eye, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SEO from '../components/SEO';
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -15,62 +16,12 @@ export default function BlogDetail() {
     fetchBlog();
   }, [id]);
 
-  // SEO: update document title, meta description and structured data
-  useEffect(() => {
-    if (!blog) return;
-
-    const title = `${blog.title} | Staffdox Blog`;
-    document.title = title;
-
-    const description =
-      blog.metaDescription ||
-      blog.excerpt ||
-      'Read career insights and job search advice from Staffdox.';
-
-    let metaTag = document.querySelector("meta[name='description']");
-    if (!metaTag) {
-      metaTag = document.createElement('meta');
-      metaTag.name = 'description';
-      document.head.appendChild(metaTag);
-    }
-    metaTag.content = description;
-
-    // Structured data (JSON-LD) for Article
-    const jsonLd = {
-      '@context': 'https://schema.org',
-      '@type': 'Article',
-      headline: blog.title,
-      description,
-      image: blog.featuredImage || undefined,
-      datePublished: blog.publishedAt,
-      author: blog.author
-        ? {
-            '@type': 'Person',
-            name: `${blog.author.firstName || ''} ${blog.author.lastName || ''}`.trim()
-          }
-        : undefined
-    };
-
-    let scriptTag = document.getElementById('staffdox-blog-ld-json');
-    if (!scriptTag) {
-      scriptTag = document.createElement('script');
-      scriptTag.type = 'application/ld+json';
-      scriptTag.id = 'staffdox-blog-ld-json';
-      document.head.appendChild(scriptTag);
-    }
-    scriptTag.text = JSON.stringify(jsonLd);
-
-    return () => {
-      // Optional: do not remove structured data on unmount to keep it for crawlers
-    };
-  }, [blog]);
-
   const fetchBlog = async () => {
     try {
       setLoading(true);
       const response = await API.get(`/api/blogs/${id}`);
       setBlog(response.data.blog);
-      
+
       // Fetch related blogs
       if (response.data.blog) {
         fetchRelatedBlogs(response.data.blog.category, response.data.blog._id);
@@ -103,10 +54,10 @@ export default function BlogDetail() {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     });
   };
 
@@ -142,6 +93,25 @@ export default function BlogDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <SEO
+        title={blog.title}
+        description={blog.metaDescription || blog.excerpt || 'Read career insights from Staffdox.'}
+        keywords={blog.tags?.join(', ')}
+        ogImage={blog.featuredImage}
+        ogType="article"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: blog.title,
+          description: blog.metaDescription || blog.excerpt,
+          image: blog.featuredImage,
+          datePublished: blog.publishedAt,
+          author: blog.author ? {
+            '@type': 'Person',
+            name: `${blog.author.firstName} ${blog.author.lastName}`
+          } : undefined
+        }}
+      />
       {/* Back Button */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -163,7 +133,7 @@ export default function BlogDetail() {
               {blog.category}
             </span>
           </div>
-          
+
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
             {blog.title}
           </h1>
@@ -190,21 +160,21 @@ export default function BlogDetail() {
                 </div>
               </div>
             )}
-            
+
             {blog.publishedAt && (
               <div className="flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
                 <span>{formatDate(blog.publishedAt)}</span>
               </div>
             )}
-            
+
             {blog.readTime && (
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
                 <span>{blog.readTime}</span>
               </div>
             )}
-            
+
             {blog.views > 0 && (
               <div className="flex items-center gap-2">
                 <Eye className="w-5 h-5" />
@@ -317,4 +287,3 @@ export default function BlogDetail() {
     </div>
   );
 }
-

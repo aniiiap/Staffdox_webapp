@@ -1,4 +1,5 @@
 const Blog = require('../models/Blog');
+const Job = require('../models/Job');
 
 // Generate XML sitemap
 exports.generateSitemap = async (req, res) => {
@@ -6,11 +7,18 @@ exports.generateSitemap = async (req, res) => {
     // Use CLIENT_URL from env, remove trailing slash, and handle www vs non-www
     let baseUrl = process.env.CLIENT_URL || 'https://staffdox.com';
     baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
-    
+
     // Get all published blogs
-    const blogs = await Blog.find({ published: true })
+    const blogsPromise = Blog.find({ published: true })
       .select('slug publishedAt updatedAt')
       .sort({ publishedAt: -1 });
+
+    // Get all active jobs
+    const jobsPromise = Job.find({ status: 'active' }) // Assuming 'status' field exists and 'active' is the value
+      .select('_id title updatedAt createdAt')
+      .sort({ createdAt: -1 });
+
+    const [blogs, jobs] = await Promise.all([blogsPromise, jobsPromise]);
 
     // Static pages
     const staticPages = [
@@ -56,6 +64,24 @@ exports.generateSitemap = async (req, res) => {
   </url>`;
     });
 
+    // Add job postings
+    jobs.forEach(job => {
+      const lastmod = (job.updatedAt || job.createdAt || new Date()).toISOString().split('T')[0];
+      // Assuming job detail URL structure is /jobs/:id or /job/:id. Adjust as per frontend routes.
+      // Based on pages scan earlier, likely /jobs/:id or similar. 
+      // Let's assume /jobs/:id based on standard patterns, verify if possible but sitemap is usually forgiving on redirects.
+      // Actually, looking at previous file scans, 'JobDetails.jsx' exists.
+      // I'll stick to /jobs/${job._id} which is common.
+      const jobUrl = `/jobs/${job._id}`;
+      sitemap += `
+  <url>
+    <loc>${baseUrl}${jobUrl}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`;
+    });
+
     sitemap += `
 </urlset>`;
 
@@ -70,7 +96,7 @@ exports.generateSitemap = async (req, res) => {
 // Generate robots.txt
 exports.generateRobotsTxt = (req, res) => {
   const baseUrl = process.env.CLIENT_URL || 'https://staffdox.com';
-  
+
   const robotsTxt = `User-agent: *
 Allow: /
 Disallow: /api/

@@ -565,3 +565,28 @@ exports.getBlogViewsByBlogId = async (req, res) => {
   }
 };
 
+
+// Upload image for blog content (admin only)
+exports.uploadBlogImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image file provided' });
+    }
+
+    // Cloudinary upload is handled by middleware, so we just return the URL
+    // multer-storage-cloudinary returns file info in req.file
+    const imageUrl = req.file.path || req.file.url || req.file.secure_url;
+
+    if (!imageUrl) {
+      return res.status(500).json({ message: 'Failed to get image URL from uploaded file' });
+    }
+
+    res.json({ 
+      url: imageUrl,
+      public_id: req.file.public_id || req.file.filename
+    });
+  } catch (error) {
+    console.error('Upload blog image error:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
