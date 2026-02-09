@@ -8,6 +8,8 @@ import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
+import { TextStyle } from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
   List, ListOrdered, Quote, Link as LinkIcon, Image as ImageIcon,
@@ -42,6 +44,7 @@ const MenuBar = ({ editor, addImage }) => {
     <div className="border-b border-gray-200 bg-gray-50 p-2 flex flex-wrap gap-1 sticky top-0 z-10">
       <div className="flex items-center gap-1 border-r border-gray-300 pr-2 mr-1">
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Heading 2"
@@ -49,6 +52,7 @@ const MenuBar = ({ editor, addImage }) => {
           <Heading2 className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('heading', { level: 3 }) ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Heading 3"
@@ -59,6 +63,7 @@ const MenuBar = ({ editor, addImage }) => {
 
       <div className="flex items-center gap-1 border-r border-gray-300 pr-2 mr-1">
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('bold') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Bold"
@@ -66,6 +71,7 @@ const MenuBar = ({ editor, addImage }) => {
           <Bold className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('italic') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Italic"
@@ -73,6 +79,7 @@ const MenuBar = ({ editor, addImage }) => {
           <Italic className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('underline') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Underline"
@@ -83,6 +90,7 @@ const MenuBar = ({ editor, addImage }) => {
 
       <div className="flex items-center gap-1 border-r border-gray-300 pr-2 mr-1">
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('bulletList') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Bullet List"
@@ -90,6 +98,7 @@ const MenuBar = ({ editor, addImage }) => {
           <List className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('orderedList') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Ordered List"
@@ -100,6 +109,7 @@ const MenuBar = ({ editor, addImage }) => {
 
       <div className="flex items-center gap-1 border-r border-gray-300 pr-2 mr-1">
         <button
+          type="button"
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Align Left"
@@ -107,6 +117,7 @@ const MenuBar = ({ editor, addImage }) => {
           <AlignLeft className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Align Center"
@@ -114,6 +125,7 @@ const MenuBar = ({ editor, addImage }) => {
           <AlignCenter className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Align Right"
@@ -124,6 +136,7 @@ const MenuBar = ({ editor, addImage }) => {
 
       <div className="flex items-center gap-1 border-r border-gray-300 pr-2 mr-1">
         <button
+          type="button"
           onClick={setLink}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('link') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Link"
@@ -131,6 +144,7 @@ const MenuBar = ({ editor, addImage }) => {
           <LinkIcon className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={addImage}
           className="p-2 rounded hover:bg-gray-200 transition-colors text-gray-600"
           title="Insert Image"
@@ -138,6 +152,7 @@ const MenuBar = ({ editor, addImage }) => {
           <ImageIcon className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           className={`p-2 rounded hover:bg-gray-200 transition-colors ${editor.isActive('blockquote') ? 'bg-gray-200 text-blue-600' : 'text-gray-600'}`}
           title="Blockquote"
@@ -148,6 +163,7 @@ const MenuBar = ({ editor, addImage }) => {
 
       <div className="flex items-center gap-1 ml-auto">
         <button
+          type="button"
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().chain().focus().undo().run()}
           className="p-2 rounded hover:bg-gray-200 transition-colors text-gray-600 disabled:opacity-30"
@@ -156,6 +172,7 @@ const MenuBar = ({ editor, addImage }) => {
           <Undo className="w-4 h-4" />
         </button>
         <button
+          type="button"
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().chain().focus().redo().run()}
           className="p-2 rounded hover:bg-gray-200 transition-colors text-gray-600 disabled:opacity-30"
@@ -235,6 +252,8 @@ export default function RichTextEditor({ value, onChange }) {
         showOnlyWhenEditable: true,
       }),
       Typography,
+      TextStyle,
+      Color,
     ],
     content: value || '',
     editorProps: {
@@ -309,18 +328,21 @@ export default function RichTextEditor({ value, onChange }) {
       {editor && (
         <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="flex bg-white shadow-xl border border-gray-200 rounded-lg overflow-hidden p-1 gap-1">
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleBold().run()}
             className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('bold') ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
           >
             <Bold className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleItalic().run()}
             className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('italic') ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
           >
             <Italic className="w-4 h-4" />
           </button>
           <button
+            type="button"
             onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
             className={`p-1.5 rounded hover:bg-gray-100 ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
           >
