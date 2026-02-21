@@ -219,12 +219,8 @@ export default function BlogDetail() {
 
         {/* Content */}
         <div
-          className="prose prose-lg max-w-none mb-12"
+          className="prose prose-lg prose-headings:font-bold prose-headings:text-gray-900 prose-h1:text-4xl prose-h2:text-3xl prose-h3:text-2xl prose-h4:text-xl prose-p:text-gray-700 prose-p:leading-relaxed prose-strong:text-gray-900 prose-strong:font-bold prose-a:text-blue-600 prose-a:underline prose-ul:list-disc prose-ul:pl-6 prose-ol:list-decimal prose-ol:pl-6 prose-li:text-gray-700 prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 max-w-none mb-12 blog-content"
           dangerouslySetInnerHTML={{ __html: blog.content }}
-          style={{
-            lineHeight: '1.8',
-            color: '#374151'
-          }}
         />
 
         {/* Share Section */}
